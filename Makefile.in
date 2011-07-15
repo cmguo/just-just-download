@@ -57,5 +57,3 @@ PROJECT_DEPENDS			:=
 ## 该项目特定的引用库
 
 PROJECT_DEPEND_LIBRARYS		:= 
-
-include $(RELETIVE_DIR)/../BootStrap.mk
