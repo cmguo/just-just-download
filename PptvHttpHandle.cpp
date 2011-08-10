@@ -144,9 +144,9 @@ namespace ppbox
             ec = error_code();
             TiXmlDocument xmlDoc;
             {
-                *buffer_cast<char *>(http_client_->get_response().data().prepare(1)) = '\0';
-                http_client_->get_response().data().commit(1);
-                std::string buffer = buffer_cast<char const *>(http_client_->get_response().data().data());
+                *buffer_cast<char *>(http_client_->response().data().prepare(1)) = '\0';
+                http_client_->response().data().commit(1);
+                std::string buffer = buffer_cast<char const *>(http_client_->response().data().data());
                 xmlDoc.Parse(buffer.c_str());
             }
             if (xmlDoc.Error()) {
@@ -251,9 +251,9 @@ namespace ppbox
             ec = error_code();
             TiXmlDocument xmlDoc;
             {
-                *buffer_cast<char *>(http_client_->get_response().data().prepare(1)) = '\0';
-                http_client_->get_response().data().commit(1);
-                std::string buffer = buffer_cast<char const *>(http_client_->get_response().data().data());
+                *buffer_cast<char *>(http_client_->response().data().prepare(1)) = '\0';
+                http_client_->response().data().commit(1);
+                std::string buffer = buffer_cast<char const *>(http_client_->response().data().data());
                 xmlDoc.Parse(buffer.c_str());
             }
             if (xmlDoc.Error()) {

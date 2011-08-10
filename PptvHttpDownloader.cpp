@@ -110,7 +110,7 @@ namespace ppbox
 
             if (!ec) {
                 reset();
-                http_client_->get_response_head().get_content(std::cout);
+                http_client_->response_head().get_content(std::cout);
                 boost::asio::async_read(*http_client_,
                     boost::asio::buffer(buf_),
                     boost::asio::transfer_all(),
