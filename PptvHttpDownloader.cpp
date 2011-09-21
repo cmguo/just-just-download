@@ -75,7 +75,7 @@ namespace ppbox
             resp_ = resp;
 
             if (range_.begin != 0 || range_.end != (boost::uint64_t)-1) {
-                request_.head().range.reset(http_filed::Range((boost::int64_t)range_.begin
+                request_.head().range.reset(http_field::Range((boost::int64_t)range_.begin
                     ,(boost::int64_t)range_.end));
                 download_size_ = range_.end - range_.begin;
                 LOG_S(Logger::kLevelAlarm, "request head range: begin = " << range_.begin << ", end = " << range_.end);
