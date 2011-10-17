@@ -18,12 +18,20 @@ using namespace util::protocol;
 
 FRAMEWORK_LOGGER_DECLARE_MODULE("ppbox_download");
 
+#ifndef PPBOX_DNS_DOWNLOAD_JUMP
+#define PPBOX_DNS_DOWNLOAD_JUMP "(tcp)(v4)j.150hi.com:80"
+#endif
+
+#ifndef PPBOX_DNS_DOWNLOAD_DRAG
+#define PPBOX_DNS_DOWNLOAD_DRAG "(tcp)(v4)d.150hi.com:80"
+#endif
+
 namespace ppbox
 {
     namespace download
     {
-        static const NetName dns_jump_server("(v4)j.150hi.com:80");
-        static const NetName dns_drag_server("(v4)d.150hi.com:80");
+        static const NetName dns_jump_server(PPBOX_DNS_DOWNLOAD_JUMP);
+        static const NetName dns_drag_server(PPBOX_DNS_DOWNLOAD_DRAG);
 
         static time_t UTCtoLocaltime(
             std::string const & utctime)

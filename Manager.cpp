@@ -11,7 +11,11 @@ namespace ppbox
     namespace download
     {
         Manager::Manager(util::daemon::Daemon & daemon)
+#ifdef  PPBOX_DISABLE_CERTIFY
+			: ppbox::common::CommonModuleBase<Manager>(daemon, "download")
+#else
             : ppbox::certify::CertifyUserModuleBase<Manager>(daemon, "download")
+#endif            
             , io_srv_(io_svc())
         {
         }
@@ -22,13 +26,17 @@ namespace ppbox
 
         error_code Manager::startup()
         {
+        #ifndef  PPBOX_DISABLE_CERTIFY
             start_certify();
+		#endif
             return error_code();
         }
 
         void Manager::shutdown()
         {
+         #ifndef  PPBOX_DISABLE_CERTIFY
             stop_certify();
+		 #endif
         }
 
         // 进入认证成功状态

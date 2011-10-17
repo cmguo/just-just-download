@@ -7,7 +7,9 @@
 
 #include <ppbox/common/CommonModuleBase.h>
 #include <ppbox/demux/DemuxerType.h>
+#ifndef  PPBOX_DISABLE_CERTIFY
 #include <ppbox/certify/CertifyUserModule.h>
+#endif
 
 namespace ppbox
 {
@@ -35,7 +37,11 @@ namespace ppbox
         typedef std::vector<DownloadInsideHander *>       DownloaderList;
 
         class Manager
+#ifdef  PPBOX_DISABLE_CERTIFY			
+            : public ppbox::common::CommonModuleBase<Manager>
+#else			
             : public ppbox::certify::CertifyUserModuleBase<Manager>
+#endif            
         {
         public:
             // 进入认证成功状态
