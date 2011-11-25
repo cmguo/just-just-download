@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <ppbox/common/CommonModuleBase.h>
-#include <ppbox/demux/DemuxerType.h>
+#include <ppbox/demux/base/DemuxerType.h>
 #ifndef  PPBOX_DISABLE_CERTIFY
 #include <ppbox/certify/CertifyUserModule.h>
 #endif
