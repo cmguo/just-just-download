@@ -1,7 +1,7 @@
 // Manager.h
 #ifndef _PPBOX_DOWNLOAD_MANAGER_H_
 #define _PPBOX_DOWNLOAD_MANAGER_H_
-#include "ppbox/download/Downloader.h"
+
 
 #include <vector>
 
@@ -11,30 +11,32 @@
 #include <ppbox/certify/CertifyUserModule.h>
 #endif
 
+
+#include <boost/asio/deadline_timer.hpp>
+
 namespace ppbox
 {
     namespace download
     {
-        typedef void * DownloadHander;
 
-        struct DownloadInsideHander
+        class Mp4Manager;
+        class FlvTsManager;
+
+        struct DownloadStatistic
         {
-            DownloadInsideHander & operator=(DownloadInsideHander const & download_hander)
+            DownloadStatistic()
             {
-                this->playlink = download_hander.playlink;
-                this->format   = download_hander.format;
-                this->dest     = download_hander.dest;
-                this->downloder= download_hander.downloder;
-                return *this;
+                finish_percent = 0.0;
+                finish_size = 0;
+                speed = 0;
             }
-
-            std::string           playlink;
-            std::string           format;
-            std::string           dest;
-            Downloader::pointer   downloder;
+            float finish_percent;  //已下载百分比
+            boost::uint64_t finish_size;
+            boost::uint32_t speed; // B/s
         };
 
-        typedef std::vector<DownloadInsideHander *>       DownloaderList;
+        typedef void* DownloadHander;
+
 
         class Manager
 #ifdef  PPBOX_DISABLE_CERTIFY			
@@ -85,14 +87,12 @@ namespace ppbox
             void set_download_path(char const * path);
 
         private:
-             bool find(DownloadHander const download_hander) const;
-
-        private:
             boost::asio::io_service & io_srv_;
-            DownloaderList            downloader_list_;
-
             // config
             std::string               storage_path_;
+
+            Mp4Manager& mp4_module_;
+            FlvTsManager& flvts_module_;
         };
     }
 }

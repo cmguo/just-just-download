@@ -1,8 +1,12 @@
 // Manager.cpp
 #include "ppbox/download/Common.h"
+#include "ppbox/download/Mp4Manager.h"
+#include "ppbox/download/FlvTsManager.h"
 #include "ppbox/download/Manager.h"
 
 #include <utility>
+
+#include <boost/bind.hpp>
 
 using namespace boost::system;
 
@@ -16,6 +20,8 @@ namespace ppbox
 #else
             : ppbox::certify::CertifyUserModuleBase<Manager>(daemon, "download")
 #endif            
+            , mp4_module_(util::daemon::use_module<ppbox::download::Mp4Manager>(daemon))
+            , flvts_module_(util::daemon::use_module<ppbox::download::FlvTsManager>(daemon))
             , io_srv_(io_svc())
         {
         }
@@ -37,6 +43,8 @@ namespace ppbox
          #ifndef  PPBOX_DISABLE_CERTIFY
             stop_certify();
 		 #endif
+
+            
         }
 
         // 进入认证成功状态
@@ -66,60 +74,36 @@ namespace ppbox
                                 DownloadHander & download_hander,
                                 error_code & ec)
         {
-
-            DownloadInsideHander *hander = new DownloadInsideHander;
-            hander->dest = dest;
-            hander->format = format;
-            hander->playlink = playlink;
-            hander->downloder.reset(new Downloader(io_srv_));
-            if (storage_path_.empty()) {
-                hander->downloder->set_download_path(dest);
-            } else {
-                hander->dest = storage_path_;
-                hander->downloder->set_download_path(storage_path_.c_str());
+            MangerHandle* handle = new MangerHandle(format);
+            if(handle->type == "mp4" )
+            {
+                mp4_module_.add(playlink,format,dest,filename,handle->content,ec);
             }
-            std::string end_filename = filename;
-            if (end_filename.empty()) {
-                ec = error::parameter_error;
-            } else {
-                end_filename += ".";
-                end_filename += format;
-                hander->downloder->set_file_name(end_filename.c_str());
-                if (find(download_hander)) {
-                    ec = error::already_download;
-                } else {
-                    hander->downloder->start(playlink, ec);
-                    if (!ec) {
-                        downloader_list_.push_back(hander);
-                        download_hander = hander;
-                    }
-                }
+            else
+            {
+                flvts_module_.add(playlink,format,dest,filename,handle->content,ec);
             }
-            
+            download_hander = (DownloadHander)handle;
             return ec;
         }
 
         error_code Manager::del(DownloadHander const download_hander,
                                 error_code & ec)
         {
-            bool res = false;
-            for (DownloaderList::iterator iter = downloader_list_.begin();
-                iter != downloader_list_.end();
-                iter++) {
-                    DownloadInsideHander *tmp_handle = *iter;
-                    if (tmp_handle == (DownloadInsideHander *)download_hander) {
-                            tmp_handle->downloder->stop();
-                            tmp_handle->downloder.reset();
-                            downloader_list_.erase(iter);
-                            delete tmp_handle;
-                            res = true;
-                            break;
-                    }
-            }
+            MangerHandle* handle = (MangerHandle*)download_hander;
 
-            if (!res) {
-                ec = error::not_found_downloader;
+            if(handle->type == "mp4" )
+            {
+                mp4_module_.del(handle->content,ec);
             }
+            else
+            {
+                flvts_module_.del(handle->content,ec);
+            }
+            
+            //清内存
+            delete handle;
+
             return ec;
         }
 
@@ -127,68 +111,41 @@ namespace ppbox
                                                    DownloadStatistic & download_statistic,
                                                    error_code & ec)
         {
-            bool res = false;
-            for (DownloaderList::const_iterator iter = downloader_list_.begin();
-                iter != downloader_list_.end();
-                iter++) {
-                    DownloadInsideHander *tmp_handle = *iter;
-                    if (tmp_handle == (DownloadInsideHander *)download_hander) {
-                            res = true;
-                            tmp_handle->downloder->get_download_statictis(download_statistic, ec);
-                            break;
-                    }
-            }
+            FileDownloadStatistic temp;
+            MangerHandle* handle = (MangerHandle*)download_hander;
 
-            if (!res) {
-                ec = error::not_found_downloader;
+            if(handle->type == "mp4" )
+            {
+                mp4_module_.get_download_statictis(handle->content,temp,ec);
             }
+            else
+            {
+                flvts_module_.get_download_statictis(handle->content,temp,ec);
+            }
+            
+            download_statistic.finish_percent = temp.finish_percent;
+            download_statistic.finish_size = temp.finish_size;
+            download_statistic.speed = temp.speed;
+
             return ec;
         }
 
         boost::uint32_t Manager::get_downloader_count(void) const
         {
-            return (boost::uint32_t)downloader_list_.size();
+
+            return (mp4_module_.get_downloader_count()+flvts_module_.get_downloader_count());
         }
 
         error_code Manager::get_last_error(DownloadHander const download_hander) const
         {
-            bool res = false;
-            for (DownloaderList::const_iterator iter = downloader_list_.begin();
-                iter != downloader_list_.end();
-                iter++) {
-                    DownloadInsideHander *tmp_handle = *iter;
-                    if (tmp_handle == (DownloadInsideHander *)download_hander) {
-                            return tmp_handle->downloder->get_last_error();
-                    }
-            }
-
             error_code ec;
-            if (!res) {
-                ec = error::not_found_downloader;
-            }
             return ec;
 
         }
 
         void Manager::set_download_path(char const * path)
         {
-            storage_path_ = path;
-        }
 
-        bool Manager::find(DownloadHander const download_hander) const
-        {
-            bool res = false;
-            for (DownloaderList::const_iterator iter = downloader_list_.begin();
-                 iter != downloader_list_.end();
-                 iter++) {
-                 DownloadInsideHander *tmp_handle = *iter;
-                 if (tmp_handle == (DownloadInsideHander *)download_hander) {
-                     res = true;
-                     break;
-                 }
-            }
-            return res;
         }
-
     }
 }

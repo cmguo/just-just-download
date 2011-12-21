@@ -29,6 +29,10 @@ namespace ppbox
                 download_finished_task,
                 already_download,
                 parameter_error,
+                save_file_error,
+                format_not_support,
+                no_temp_file,
+                parse_temp_file_error,
                 other_error,
             };
 
@@ -80,6 +84,14 @@ namespace ppbox
                                 return "already download";
                             case parameter_error:
                                 return "parameter error";
+                            case save_file_error:
+                                return "save video error";
+                            case format_not_support:
+                                return "format not support";
+                            case no_temp_file:
+                                return "no temp file";
+                            case parse_temp_file_error:
+                                return "parse temp file error";
                             default:
                                 return "unknown error";
                         }
