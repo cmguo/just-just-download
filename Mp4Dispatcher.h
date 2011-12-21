@@ -41,6 +41,9 @@ namespace ppbox
 
             void handle_timer( boost::system::error_code const & ec);
 
+            std::string parse_url(std::string const &url,boost::system::error_code& ec);
+
+
         private:
             ppbox::vod::BigMp4 bigmp4_;
             std::string filename_;

@@ -4,6 +4,11 @@
 #include "ppbox/download/Mp4DownloadSink.h"
 #include "ppbox/download/FileParse.h"
 
+#ifndef PPBOX_DISABLE_CERTIFY
+#include <ppbox/certify/Certifier.h>
+#endif
+
+#include <util/protocol/pptv/Url.h>
 #include <boost/filesystem/operations.hpp>
 
 #include <framework/logger/LoggerStreamRecord.h>
@@ -61,9 +66,11 @@ namespace ppbox
 
             std::string oldUrl(play_link);
             oldUrl = oldUrl.substr(std::string("ppvod://").size());
+
+            oldUrl = parse_url(oldUrl,ec);
             bigmp4_.async_open(oldUrl
-               //  ,ppbox::vod::BigMp4::FetchMode::big_head
-               ,ppbox::vod::BigMp4::FetchMode::small_head
+                ,ppbox::vod::BigMp4::FetchMode::big_head
+                //,ppbox::vod::BigMp4::FetchMode::small_head
                 ,file_
                 ,boost::bind(&Mp4Dispatcher::async_open_callback,this,_1));
             return ec;
@@ -105,6 +112,12 @@ namespace ppbox
                 return;
             }
 
+            if(vaild_size > total_size) 
+            {
+                assert(0);
+                total_size = vaild_size;
+            }
+
             status_->finish_percent = (float)vaild_size/total_size;
             status_->speed = vaild_size - status_->finish_size;
             status_->finish_size = vaild_size;
@@ -138,6 +151,31 @@ namespace ppbox
         {
             download_statistic = *status_;
             return ec;
+        }
+
+        std::string Mp4Dispatcher::parse_url(std::string const &url,boost::system::error_code& ec)
+        {
+            std::string  newUrl;
+            std::string key;
+#ifdef PPBOX_DISABLE_CERTIFY
+            key = "kioe257ds";
+#else
+            ppbox::certify::Certifier& cert = util::daemon::use_module<ppbox::certify::Certifier>(global_daemon());
+            cert.certify_url(ppbox::certify::CertifyType::vod,"",key,ec);
+            if (ec)
+            {
+                LOG_S(framework::logger::Logger::kLevelError,"[parse_url] ec:"<<ec.message());
+                return newUrl;
+            }
+#endif
+            newUrl = util::protocol::pptv::url_decode(url, key);
+
+            framework::string::StringToken st(newUrl, "||");
+            if (!st.next_token(ec)) {
+                newUrl = st.remain();
+            }
+
+            return newUrl;
         }
     }
 }

@@ -20,9 +20,9 @@ namespace ppbox
 #else
             : ppbox::certify::CertifyUserModuleBase<Manager>(daemon, "download")
 #endif            
+            , io_srv_(io_svc())
             , mp4_module_(util::daemon::use_module<ppbox::download::Mp4Manager>(daemon))
             , flvts_module_(util::daemon::use_module<ppbox::download::FlvTsManager>(daemon))
-            , io_srv_(io_svc())
         {
         }
 
