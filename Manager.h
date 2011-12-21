@@ -87,12 +87,12 @@ namespace ppbox
             void set_download_path(char const * path);
 
         private:
-            boost::asio::io_service & io_srv_;
             // config
-            std::string               storage_path_;
 
             Mp4Manager& mp4_module_;
             FlvTsManager& flvts_module_;
+            boost::asio::io_service & io_srv_;
+            std::string               storage_path_;
         };
     }
 }
