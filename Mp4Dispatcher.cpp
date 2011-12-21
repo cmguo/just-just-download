@@ -1,7 +1,6 @@
 // Mp4Manager.cpp
 #include "ppbox/download/Common.h"
 #include "ppbox/download/Mp4Dispatcher.h"
-#include "ppbox/download/Mp4DownloadSink.h"
 #include "ppbox/download/FileParse.h"
 
 #ifndef PPBOX_DISABLE_CERTIFY
@@ -160,8 +159,8 @@ namespace ppbox
 #ifdef PPBOX_DISABLE_CERTIFY
             key = "kioe257ds";
 #else
-            ppbox::certify::Certifier& cert = util::daemon::use_module<ppbox::certify::Certifier>(global_daemon());
-            cert.certify_url(ppbox::certify::CertifyType::vod,"",key,ec);
+            //ppbox::certify::Certifier& cert = util::daemon::use_module<ppbox::certify::Certifier>(global_daemon());
+            //cert.certify_url(ppbox::certify::CertifyType::vod,"",key,ec);
             if (ec)
             {
                 LOG_S(framework::logger::Logger::kLevelError,"[parse_url] ec:"<<ec.message());

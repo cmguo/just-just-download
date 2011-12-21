@@ -2,16 +2,9 @@
 #ifndef _PPBOX_MP4_DOWNLOAD_MANAGER_H_
 #define _PPBOX_MP4_DOWNLOAD_MANAGER_H_
 
-
-
-#include <ppbox/common/CommonModuleBase.h>
-#include <ppbox/demux/DemuxerType.h>
-
 #ifndef  PPBOX_DISABLE_CERTIFY
 #include <ppbox/certify/CertifyUserModule.h>
 #endif
-
-#include <vector>
 
 namespace ppbox
 {

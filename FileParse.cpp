@@ -261,7 +261,7 @@ namespace ppbox
 
                 framework::system::UInt24 data_size;
 
-                long  leave_sise = total_size-3;
+                boost::uint32_t  leave_sise = total_size-3;
 
                 //定义FLV头的最小值 
 #define FLV_HEADERS_SIZE 13

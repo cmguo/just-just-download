@@ -3,9 +3,10 @@
 #include "ppbox/download/FileParse.h"
 #include "ppbox/download/UpReport.h"
 
-#include <ppbox/demux/DemuxerBase.h>
+#include <ppbox/demux/base/DemuxerBase.h>
+#include <ppbox/demux/base/DemuxerError.h>
+
 #include <boost/filesystem/operations.hpp>
-#include <ppbox/demux/DemuxerError.h>
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DownloadSink", 0)
 
@@ -61,15 +62,13 @@ namespace ppbox
 
                     FileParse  pasr;
                     pasr.rename(filename_);
-                    return boost::system::error_code();
                 }
+                return boost::system::error_code();
             }
             catch(...)
             {
                 return error::save_file_error;
             }
-            
-
         }
 
         //工作线程调用

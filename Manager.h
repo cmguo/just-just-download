@@ -89,9 +89,9 @@ namespace ppbox
         private:
             // config
 
+            boost::asio::io_service & io_srv_;
             Mp4Manager& mp4_module_;
             FlvTsManager& flvts_module_;
-            boost::asio::io_service & io_srv_;
             std::string               storage_path_;
         };
     }

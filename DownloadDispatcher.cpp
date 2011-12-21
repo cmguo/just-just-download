@@ -7,7 +7,7 @@
 
 
 #include <ppbox/mux/Muxer.h>
-#include <ppbox/demux/DemuxerError.h>
+#include <ppbox/demux/base/DemuxerError.h>
 
 #include <framework/timer/TickCounter.h>
 #include <boost/bind.hpp>
