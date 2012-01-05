@@ -12,6 +12,7 @@ namespace ppbox
     namespace mux
     {
         struct MuxTag;
+        class Sink;
     }
 
     namespace download
@@ -68,7 +69,7 @@ namespace ppbox
         private:
             boost::uint32_t session_id_;
             FileDownloadStatistic* status_;
-            DownloadSink* sink_;
+            ppbox::mux::Sink* sink_;
 
             boost::uint32_t seek_time_; //计算出seek的值
             boost::uint32_t seek_size_; //计算出seek的值

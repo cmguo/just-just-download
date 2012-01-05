@@ -15,12 +15,15 @@ namespace ppbox
         {
         public:
             //DownloadSink();  ×ÜÊ±³¤
+            DownloadSink(){}
             DownloadSink(std::string filename,UpReport* upobj,boost::uint32_t iTime,boost::uint32_t iSeek); 
             virtual ~DownloadSink();
 
             boost::system::error_code on_finish( boost::system::error_code const &ec);
         private:
-            virtual boost::system::error_code write(ppbox::demux::Sample&);
+            virtual boost::system::error_code write(
+                boost::posix_time::ptime const & time_send,
+                ppbox::demux::Sample&);
 
         private:
             std::fstream file_;

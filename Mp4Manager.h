@@ -48,7 +48,9 @@ namespace ppbox
              bool find(void* const download_hander) const;
 
         private:
+#ifndef  PPBOX_DISABLE_CERTIFY
             ppbox::certify::Certifier& ceri_;
+#endif
             boost::asio::io_service & io_srv_;
             // config
             std::string               storage_path_;

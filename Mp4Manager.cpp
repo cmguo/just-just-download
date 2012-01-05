@@ -21,8 +21,10 @@ namespace ppbox
     namespace download
     {
         Mp4Manager::Mp4Manager(util::daemon::Daemon & daemon)
-			: ppbox::common::CommonModuleBase<Mp4Manager>(daemon, "Mp4Manager")
+            : ppbox::common::CommonModuleBase<Mp4Manager>(daemon, "Mp4Manager")
+#ifndef  PPBOX_DISABLE_CERTIFY
             , ceri_(util::daemon::use_module<ppbox::certify::Certifier>(daemon))
+#endif
             , io_srv_(io_svc())
             ,count_(0)
         {

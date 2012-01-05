@@ -40,7 +40,7 @@ namespace ppbox
         {
 
             //判断是新打开，还是断点续传
-             DownloadDispatcher* dispatch  = get_freeDispatch();
+            DownloadDispatcher* dispatch  = get_freeDispatch();
             dispatch->open(playlink,format,dest,filename);
             download_hander = (void*)dispatch;
             return ec;

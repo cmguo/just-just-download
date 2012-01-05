@@ -52,7 +52,7 @@ namespace ppbox
 
             std::fstream file_;
             FileDownloadStatistic* status_;
-            boost::asio::deadline_timer timer_; 
+            boost::asio::deadline_timer timer_;
 
         };
     }

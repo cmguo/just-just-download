@@ -3,6 +3,7 @@
 #include "ppbox/download/Common.h"
 #include "ppbox/download/DownloadDispatcher.h"
 #include "ppbox/download/DownloadSink.h"
+#include "ppbox/download/PutSink.h"
 #include "ppbox/download/FileParse.h"
 
 
@@ -55,7 +56,14 @@ namespace ppbox
             ,std::string  const & filename)
         {
             boost::system::error_code ec;
-            filename_ = dst +filename;
+            if (0 != strncmp(filename.c_str(),"http",4))
+            {
+                filename_ = dst +filename;
+            }
+            else
+            {
+                filename_ = filename;
+            }
             working_ = true;
 
             //获取seek的time值
@@ -99,7 +107,16 @@ namespace ppbox
                 std::cout<<"Total Time:"<<duration_<<std::endl;
 
                 assert(NULL == sink_);
-                sink_ = new DownloadSink(filename_,this,seek_time_,seek_size_);
+
+                if (0 != strncmp(filename_.c_str(),"http",4))
+                {
+                    sink_ = new DownloadSink(filename_,this,seek_time_,seek_size_);
+                }
+                else
+                {
+                    sink_ = new PutSink(get_daemon().io_svc(),this,filename_);
+                }
+                //分两种
                 Dispatcher::setup(session_id_
                     ,sink_ 
                     ,boost::bind(&DownloadDispatcher::on_setup,this,_1));
@@ -180,7 +197,7 @@ namespace ppbox
                 if(curr_time - systime_ > 0)
                     status_->speed = rdata.curr_data_size*1000/(curr_time - systime_);
             }
-            status_->finish_percent = (float)rdata.curr_time/duration_;
+            status_->finish_percent = (duration_ != 0)?(float)rdata.curr_time/duration_:0;
             systime_ = curr_time;
             status_->finish_size += rdata.curr_data_size;
         }

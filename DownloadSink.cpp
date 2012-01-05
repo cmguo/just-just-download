@@ -72,7 +72,9 @@ namespace ppbox
         }
 
         //工作线程调用
-        boost::system::error_code DownloadSink::write( ppbox::demux::Sample& tag)
+        boost::system::error_code DownloadSink::write(
+            boost::posix_time::ptime const & time_send,
+            ppbox::demux::Sample& tag)
         {
             boost::system::error_code ec;
             try
