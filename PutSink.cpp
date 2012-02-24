@@ -3,8 +3,8 @@
 #include "ppbox/download/FileParse.h"
 #include "ppbox/download/UpReport.h"
 
-#include <ppbox/demux/DemuxerBase.h>
-#include <ppbox/demux/DemuxerError.h>
+#include <ppbox/demux/base/DemuxerBase.h>
+#include <ppbox/demux/base/DemuxerError.h>
 
 #include <framework/string/Base16.h>
 
