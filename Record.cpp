@@ -1,6 +1,8 @@
 // Record.cpp
 
 #include "ppbox/download/Common.h"
+#if 0
+
 #include "ppbox/download/Record.h"
 
 #include <ppbox/demux/DemuxerModule.h>
@@ -82,5 +84,8 @@ namespace ppbox
         {
             record_demux_ = NULL;
         }
+
     } // namespace download
 } // namespace ppbox
+
+#endif
