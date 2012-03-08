@@ -22,8 +22,12 @@ namespace ppbox
     namespace download
     {
         Mp4Dispatcher::Mp4Dispatcher(util::daemon::Daemon & daemon)
+#if !defined(PPBOX_DISABLE_VOD) || !defined(PPBOX_DISABLE_PEER)
             :bigmp4_(daemon.io_svc())
             ,head_size_(0)
+#else
+            :head_size_(0)
+#endif
             ,status_(NULL)
             ,timer_(daemon.io_svc() )
         {
@@ -49,7 +53,6 @@ namespace ppbox
                 <<" filename:"<<filename);
 
             boost::system::error_code ec;
-
             filename_ = dst +filename;
 
             std::string tmpfile= filename_+".tmp";
@@ -67,11 +70,20 @@ namespace ppbox
             oldUrl = oldUrl.substr(std::string("ppvod://").size());
 
             oldUrl = parse_url(oldUrl,ec);
+#if !defined(PPBOX_DISABLE_VOD)
             bigmp4_.async_open(oldUrl
                 ,ppbox::vod::BigMp4::FetchMode::big_head
                 //,ppbox::vod::BigMp4::FetchMode::small_head
                 ,file_
                 ,boost::bind(&Mp4Dispatcher::async_open_callback,this,_1));
+#elif !defined(PPBOX_DISABLE_PEER)
+            bigmp4_.async_open(oldUrl
+                ,ppbox::peer::BigMp4::FetchMode::big_head
+                ,file_
+                ,boost::bind(&Mp4Dispatcher::async_open_callback,this,_1));
+#else
+            ec = error::not_support_download;
+#endif
             return ec;
         }
 
@@ -84,6 +96,7 @@ namespace ppbox
             }
             else
             {
+#if !defined(PPBOX_DISABLE_VOD) || !defined(PPBOX_DISABLE_PEER)
                 // 对size 判断是下体还是下header
                 boost::uint32_t downSize = 0 ;
                 bigmp4_.get_valid_size(downSize);
@@ -95,12 +108,13 @@ namespace ppbox
                     ,boost::bind(&Mp4Dispatcher::async_body_callback,this,_1));
 
                 handle_timer(ec); //每隔一秒统计一次
+#endif
             }
         }
 
         void Mp4Dispatcher::handle_timer( boost::system::error_code const & ec)
         {
-            
+#if !defined(PPBOX_DISABLE_VOD) || !defined(PPBOX_DISABLE_PEER)
             boost::uint32_t total_size = 0;
             boost::uint32_t vaild_size = 0;
             bigmp4_.get_valid_size(vaild_size);
@@ -123,6 +137,7 @@ namespace ppbox
 
             timer_.expires_from_now(boost::posix_time::seconds(1));
             timer_.async_wait(boost::bind(&Mp4Dispatcher::handle_timer, this, _1));
+#endif
         }
 
         void Mp4Dispatcher::async_body_callback(boost::system::error_code const & ec)
@@ -140,7 +155,9 @@ namespace ppbox
         boost::system::error_code Mp4Dispatcher::del(boost::system::error_code & ec)
         {
             LOG_S(Logger::kLevelEvent, "[del]");
+#if !defined(PPBOX_DISABLE_VOD) || !defined(PPBOX_DISABLE_PEER)
             bigmp4_.close();
+#endif
             return ec;
         }
 

@@ -33,6 +33,7 @@ namespace ppbox
                 format_not_support,
                 no_temp_file,
                 parse_temp_file_error,
+                not_support_download,
                 other_error,
             };
 
@@ -92,6 +93,8 @@ namespace ppbox
                                 return "no temp file";
                             case parse_temp_file_error:
                                 return "parse temp file error";
+                            case not_support_download:
+                                return "no vod or no peer,don't support download";
                             default:
                                 return "unknown error";
                         }

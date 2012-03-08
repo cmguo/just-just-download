@@ -2,7 +2,14 @@
 #ifndef _PPBOX_MP4_DISPATCHER_H_
 #define _PPBOX_MP4_DISPATCHER_H_
 
+#ifndef PPBOX_DISABLE_VOD 
 #include "ppbox/vod/BigMp4.h"
+#endif
+
+#ifndef PPBOX_DISABLE_PEER
+#include "ppbox/peer/BigMp4.h"
+#endif
+
 
 #include <boost/asio/deadline_timer.hpp>
 
@@ -45,7 +52,14 @@ namespace ppbox
 
 
         private:
+
+#ifndef PPBOX_DISABLE_VOD 
             ppbox::vod::BigMp4 bigmp4_;
+#endif
+
+#ifndef PPBOX_DISABLE_PEER 
+            ppbox::peer::BigMp4 bigmp4_;
+#endif
             std::string filename_;
 
             boost::uint32_t head_size_;
