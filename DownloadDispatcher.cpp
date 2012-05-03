@@ -101,7 +101,7 @@ namespace ppbox
             if (!ec)
             {
                 const ppbox::mux::MediaFileInfo & infoTemp = cur_mov_->muxer->mediainfo();
-                duration_ = infoTemp.duration;
+                duration_ = infoTemp.duration_info.total;
 
 
                 std::cout<<"Total Time:"<<duration_<<std::endl;
