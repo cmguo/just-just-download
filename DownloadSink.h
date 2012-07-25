@@ -26,9 +26,10 @@ namespace ppbox
                 boost::system::error_code const &ec);
 
         private:
-            virtual boost::system::error_code write(
+            virtual size_t write(
                 boost::posix_time::ptime const & time_send,
-                ppbox::demux::Sample&);
+                ppbox::demux::Sample&,
+                boost::system::error_code&);
 
         private:
             std::fstream file_;

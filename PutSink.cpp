@@ -38,12 +38,11 @@ namespace ppbox
         }
 
         //工作线程调用
-        boost::system::error_code PutSink::write( 
+        size_t PutSink::write( 
             boost::posix_time::ptime const & time_send,
-            ppbox::demux::Sample& tag)
+            ppbox::demux::Sample& tag,
+            boost::system::error_code& ec)
         {
-            boost::system::error_code ec;
-
             if (!bRunning)
             {
                 //framework::
@@ -58,19 +57,17 @@ namespace ppbox
                 if (ec && ec.value() != 100)
                 {
                     std::cout<<"PutSink::write ec:"<<ec.message()<<std::endl;
-                    return ec;
+                    return 0;
                 }
                 bRunning = true;
             }
 
-            boost::asio::write(
+            return boost::asio::write(
                 //socket_, 
                 http_, 
                 tag.data, 
                 boost::asio::transfer_all(), 
                 ec);
-            return ec;
-
         }
     } // namespace download
 } // namespace ppbox

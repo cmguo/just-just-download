@@ -13,6 +13,8 @@
 #include <ppbox/certify/CertifyUserModule.h>
 #endif
 
+#include <boost/thread.hpp>
+
 namespace ppbox
 {
     namespace download

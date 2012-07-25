@@ -41,14 +41,15 @@ namespace ppbox
         {
             if (file_.is_open())
                 file_.close();
+            return ec;
         }
 
         //工作线程调用
-        boost::system::error_code DownloadSink::write(
+        size_t DownloadSink::write(
             boost::posix_time::ptime const & time_send,
-            ppbox::demux::Sample& tag)
+            ppbox::demux::Sample& tag,
+            boost::system::error_code& ec)
         {
-            boost::system::error_code ec;
             boost::uint32_t total_size = 0;
             if ( tag.time >= time_)
             {
@@ -63,7 +64,7 @@ namespace ppbox
                     time_ = tag.time;
                 }
             }
-            return ec;
+            return 0;
         }
 
     } // namespace download
