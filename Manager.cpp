@@ -123,7 +123,7 @@ namespace ppbox
                 flvts_module_.get_download_statictis(handle->content,temp,ec);
             }
             
-            download_statistic.finish_percent = temp.finish_percent;
+            download_statistic.total_size = temp.total_size;
             download_statistic.finish_size = temp.finish_size;
             download_statistic.speed = temp.speed;
 

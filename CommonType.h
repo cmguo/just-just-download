@@ -14,11 +14,11 @@ namespace ppbox
             }
             void clear()
             {
-                finish_percent = 0.0;
+                total_size = 0;
                 finish_size = 0;
                 speed = 0;
             }
-            float finish_percent;  //已下载百分比
+			boost::uint64_t total_size;  
             boost::uint64_t finish_size;
             boost::uint32_t speed; // B/s
         };

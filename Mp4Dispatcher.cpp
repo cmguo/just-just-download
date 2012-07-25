@@ -131,7 +131,7 @@ namespace ppbox
                 total_size = vaild_size;
             }
 
-            status_->finish_percent = (float)vaild_size/total_size;
+ //           status_->finish_percent = (float)vaild_size/total_size;
             status_->speed = vaild_size - status_->finish_size;
             status_->finish_size = vaild_size;
 

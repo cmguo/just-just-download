@@ -8,7 +8,7 @@
 
 #include <framework/string/Base16.h>
 
-#include <util/buffers/BufferSize.h>
+#include <util/buffers/BuffersSize.h>
 
 #include <boost/filesystem/operations.hpp>
 
@@ -70,7 +70,7 @@ namespace ppbox
                 bRunning = true;
             }
 
-            boost::uint32_t total_size = util::buffers::buffer_size(tag.data);
+            boost::uint32_t total_size = util::buffers::buffers_size(tag.data);
             boost::asio::write(
                 //socket_, 
                 http_, 

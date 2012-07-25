@@ -175,7 +175,7 @@ namespace ppbox
             status_->speed = 0;
             if (ec_ == ppbox::demux::error::no_more_sample)
             {
-                status_->finish_percent = 1.0;
+                status_->finish_size = status_->total_size;
                 ec_.clear();
             }
 
@@ -197,7 +197,7 @@ namespace ppbox
                 if(curr_time - systime_ > 0)
                     status_->speed = rdata.curr_data_size*1000/(curr_time - systime_);
             }
-            status_->finish_percent = (duration_ != 0)?(float)rdata.curr_time/duration_:0;
+            status_->finish_size = status_->total_size * ((duration_ != 0)?(float)rdata.curr_time/duration_:0);
             systime_ = curr_time;
             status_->finish_size += rdata.curr_data_size;
         }
