@@ -1,12 +1,11 @@
+// DownloadSink.cpp
+
 #include "ppbox/download/Common.h"
 #include "ppbox/download/DownloadSink.h"
-#include "ppbox/download/FileParse.h"
-#include "ppbox/download/UpReport.h"
 
 #include <ppbox/demux/base/DemuxerBase.h>
 #include <ppbox/demux/base/DemuxerError.h>
 
-#include <boost/filesystem/operations.hpp>
 
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DownloadSink", 0)
 
@@ -21,54 +20,27 @@ namespace ppbox
         }
 
         DownloadSink::DownloadSink(
-            std::string filename
-            ,UpReport* upobj
-            ,boost::uint32_t iTime 
-            ,boost::uint32_t iSeek) //file seek的位置
-            :upobj_(upobj)
-            ,filename_(filename)
-            ,time_(iTime)
+            std::string filename, 
+            boost::uint32_t iTime, 
+			boost::uint32_t iSeek)
+			: time_(iTime)
         {
-            try
+            if (iSeek)
             {
-                std::string temp = filename.c_str();
-                temp += ".tmp";
-                if(iSeek)
-                {
-                    file_.open(temp.c_str(),std::ios::binary | std::ios::in | std::ios::out);
-                    file_.seekp(iSeek,std::ios::beg);
-                }
-                else
-                {
-                    file_.open(temp.c_str(),std::ios::binary | std::ios::trunc | std::ios::out);
-                }
-                
+                file_.open(filename.c_str(),std::ios::binary | std::ios::in | std::ios::out);
+                file_.seekp(iSeek,std::ios::beg);
             }
-            catch(...)
+            else
             {
-                std::cout<<"Open "<<filename<<" Error"<<std::endl;
+                file_.open(filename.c_str(),std::ios::binary | std::ios::trunc | std::ios::out);
             }
         }
 
         boost::system::error_code DownloadSink::on_finish( 
             boost::system::error_code const &ec)
         {
-            try
-            {
-                if (!ec || ec == ppbox::demux::error::no_more_sample)
-                {                
-                    if(file_.is_open())
-                        file_.close();
-
-                    FileParse  pasr;
-                    pasr.rename(filename_);
-                }
-                return boost::system::error_code();
-            }
-            catch(...)
-            {
-                return error::save_file_error;
-            }
+            if (file_.is_open())
+                file_.close();
         }
 
         //工作线程调用
@@ -77,32 +49,21 @@ namespace ppbox
             ppbox::demux::Sample& tag)
         {
             boost::system::error_code ec;
-            try
+            boost::uint32_t total_size = 0;
+            if ( tag.time >= time_)
             {
-                boost::uint32_t total_size = 0;
-                if ( tag.time >= time_)
+                //可以写文件的条件 在else实现了
+                for(boost::uint32_t i = 0; i < tag.data.size(); ++i) 
                 {
-                    //可以写文件的条件 在else实现了
-                    for(boost::uint32_t i = 0; i < tag.data.size(); ++i) 
-                    {
-                        boost::asio::const_buffer & buf = tag.data.at(i);
-                        boost::uint8_t const * data = boost::asio::buffer_cast<boost::uint8_t const *>(buf);
-                        boost::uint32_t size = boost::asio::buffer_size(buf);
-                        file_.write((const char*)data,size);
-                        total_size += size;
-                    }
-
-                    //上报下载信息
-                    upobj_->up_report(ReportData(total_size,tag.time));
+                    boost::asio::const_buffer & buf = tag.data.at(i);
+                    boost::uint8_t const * data = boost::asio::buffer_cast<boost::uint8_t const *>(buf);
+                    boost::uint32_t size = boost::asio::buffer_size(buf);
+                    file_.write((const char*)data,size);
+                    total_size  += size;
+                    time_ = tag.time;
                 }
-                return ec;
             }
-            catch(...)
-            {
-                ec = error::save_file_error;
-                return ec;
-            }
-
+            return ec;
         }
 
     } // namespace download

@@ -27,7 +27,7 @@ int download_main(int argc, char * argv[])
     my_daemon.parse_cmdline(sizeof(default_argv) / sizeof(default_argv[0]), default_argv);
     my_daemon.parse_cmdline(argc, (char const **)argv);
 
-    framework::process::SignalHandler sig_handler(
+    framework::process::SignalHandler sig_infor(
         framework::process::Signal::sig_int, 
         boost::bind(&util::daemon::Daemon::post_stop, &my_daemon), true);
 

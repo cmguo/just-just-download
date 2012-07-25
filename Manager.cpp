@@ -1,8 +1,9 @@
 // Manager.cpp
 #include "ppbox/download/Common.h"
-#include "ppbox/download/Mp4Manager.h"
-#include "ppbox/download/FlvTsManager.h"
 #include "ppbox/download/Manager.h"
+#include "ppbox/download/Mp4Downloader.h"
+
+#include <framework/system/LogicError.h>
 
 #include <utility>
 
@@ -19,10 +20,7 @@ namespace ppbox
 			: ppbox::common::CommonModuleBase<Manager>(daemon, "download")
 #else
             : ppbox::certify::CertifyUserModuleBase<Manager>(daemon, "download")
-#endif            
-            , io_srv_(io_svc())
-            , mp4_module_(util::daemon::use_module<ppbox::download::Mp4Manager>(daemon))
-            , flvts_module_(util::daemon::use_module<ppbox::download::FlvTsManager>(daemon))
+#endif
         {
         }
 
@@ -40,11 +38,30 @@ namespace ppbox
 
         void Manager::shutdown()
         {
+            boost::mutex::scoped_lock lc(mutex_);
+
          #ifndef  PPBOX_DISABLE_CERTIFY
             stop_certify();
 		 #endif
-
-            
+            std::vector<ppbox::download::DownloadInfo>::iterator iter = info_vec_.begin();
+			error_code ec;
+			while(info_vec_.end() != iter) {
+                if (iter->cur_status == working) {
+                    iter->cur_status = canceling;
+			    	iter->downloader->close(ec);
+					++iter;
+			    } else if (stopped == iter->cur_status) {
+			    	iter->cur_status = deleted;
+			    	delete iter->downloader;
+			    	iter = info_vec_.erase(iter);
+			    	ec.clear();
+			    } else {
+					++iter;
+				}
+		    }
+		    while(!info_vec_.empty()) {
+			    cond_.wait(lc);
+		    }         
         }
 
         // 进入认证成功状态
@@ -67,83 +84,132 @@ namespace ppbox
             Manager::certify_shutdown(ec);
         }
 
-        error_code Manager::add(char const * playlink,
-                                char const * format,
-                                char const * dest,
-                                char const * filename,
-                                DownloadHander & download_hander,
-                                error_code & ec)
+        Downloader * Manager::add(
+            std::string const & playlink,
+            std::string const & format,
+            std::string const & filename,
+            error_code & ec,
+			Downloader::response_type const & resp)
         {
-            MangerHandle* handle = new MangerHandle(format);
-            if(handle->type == "mp4" )
-            {
-                mp4_module_.add(playlink,format,dest,filename,handle->content,ec);
+			boost::mutex::scoped_lock lc(mutex_);
+
+            DownloadInfo info;
+			info.resp = resp;
+            if(format == "mp4" ) {
+                Mp4Downloader * mp4_download = new Mp4Downloader(io_svc());
+                info.downloader = mp4_download;
+                mp4_download->open(playlink,
+                                format,
+                                filename,
+                                boost::bind(&Manager::add_call_back, this, info.downloader, _1));
+                info.cur_status = working;
+            } else {
+                //flvts_module_.add(playlink,format,dest,filename,info->downloader,ec);
             }
-            else
-            {
-                flvts_module_.add(playlink,format,dest,filename,handle->content,ec);
+            info_vec_.push_back(info);
+            return info.downloader;
+        }
+
+		struct FindDownloader
+		{
+			FindDownloader(
+				Downloader * downloader)
+				: downloader_(downloader)
+			{
+			}
+			
+			bool operator()(DownloadInfo const & info) const
+			{
+				return downloader_ == info.downloader;
+			}
+
+    	private:
+			Downloader * downloader_;
+		};
+
+        void Manager::add_call_back(
+            Downloader * downloader,
+            boost::system::error_code const  & ec)
+        {
+			boost::mutex::scoped_lock lc(mutex_);
+
+            std::vector<DownloadInfo>::iterator itr = 
+				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+			assert(itr != info_vec_.end());
+            if (itr == info_vec_.end())
+				return;
+
+			itr->resp(ec);
+            if (working == itr->cur_status) {
+                itr->cur_status = stopped;
+            } else if (canceling == itr->cur_status) {
+                itr->cur_status = deleted;
+		     	delete downloader;
+                info_vec_.erase(itr);
             }
-            download_hander = (DownloadHander)handle;
+        }
+
+        error_code Manager::del(
+            Downloader * downloader,
+            error_code & ec)
+        {
+			boost::mutex::scoped_lock lc(mutex_);
+
+            std::vector<DownloadInfo>::iterator itr = 
+				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+			assert(itr != info_vec_.end());
+            if (itr == info_vec_.end())
+				return ec = framework::system::logic_error::item_not_exist;
+
+            DownloadInfo & info = *itr;
+            if (working == info.cur_status) {
+                info.cur_status = canceling;
+				info.downloader->close(ec);
+            } else if (stopped == info.cur_status) {
+                info.cur_status = deleted;
+                delete itr->downloader;
+				info_vec_.erase(itr);
+				ec.clear();
+            } else if (canceling == info.cur_status) {
+				ec = framework::system::logic_error::item_not_exist;
+			}
             return ec;
         }
 
-        error_code Manager::del(DownloadHander const download_hander,
-                                error_code & ec)
+        error_code Manager::get_download_statictis(
+            Downloader * downloader,
+            DownloadStatistic & stat,
+            error_code & ec)
         {
-            MangerHandle* handle = (MangerHandle*)download_hander;
+			boost::mutex::scoped_lock lc(mutex_);
 
-            if(handle->type == "mp4" )
-            {
-                mp4_module_.del(handle->content,ec);
-            }
-            else
-            {
-                flvts_module_.del(handle->content,ec);
-            }
+            std::vector<DownloadInfo>::iterator itr = 
+				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+			assert(itr != info_vec_.end());
+            if (itr == info_vec_.end())
+				return ec = framework::system::logic_error::item_not_exist;
+
+            downloader->get_download_statictis(stat, ec);
             
-            //清内存
-            delete handle;
-
             return ec;
         }
+// 
+//         boost::uint32_t Manager::get_downloader_count(void) const
+//         {
+// 
+//             return (mp4_module_.get_downloader_count()+flvts_module_.get_downloader_count());
+//         }
 
-        error_code Manager::get_download_statictis(DownloadHander const download_hander,
-                                                   DownloadStatistic & download_statistic,
-                                                   error_code & ec)
-        {
-            FileDownloadStatistic temp;
-            MangerHandle* handle = (MangerHandle*)download_hander;
-
-            if(handle->type == "mp4" )
-            {
-                mp4_module_.get_download_statictis(handle->content,temp,ec);
-            }
-            else
-            {
-                flvts_module_.get_download_statictis(handle->content,temp,ec);
-            }
-            
-            download_statistic.total_size = temp.total_size;
-            download_statistic.finish_size = temp.finish_size;
-            download_statistic.speed = temp.speed;
-
-            return ec;
-        }
-
-        boost::uint32_t Manager::get_downloader_count(void) const
-        {
-
-            return (mp4_module_.get_downloader_count()+flvts_module_.get_downloader_count());
-        }
-
-        error_code Manager::get_last_error(DownloadHander const download_hander) const
+        error_code Manager::get_last_error(
+				DownloadHander const download_hander) const
         {
             error_code ec;
             return ec;
 
         }
 
-        void Manager::set_download_path(char const * path)
+        void Manager::set_download_path(
+				char const * path)
         {
 
         }

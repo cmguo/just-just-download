@@ -1,18 +1,12 @@
+// PutSink.cpp
+
 #include "ppbox/download/Common.h"
 #include "ppbox/download/PutSink.h"
-#include "ppbox/download/FileParse.h"
-#include "ppbox/download/UpReport.h"
 
 #include <ppbox/demux/base/DemuxerBase.h>
 #include <ppbox/demux/base/DemuxerError.h>
 
-#include <framework/string/Base16.h>
-
-#include <util/buffers/BuffersSize.h>
-
-#include <boost/filesystem/operations.hpp>
-
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DownloadSink", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("PutSink", 0)
 
 namespace ppbox
 {
@@ -24,14 +18,13 @@ namespace ppbox
         }
 
         PutSink::PutSink(
-            boost::asio::io_service & io_svc
-            ,UpReport* upobj
-            ,std::string http_file) //file seek的位置
-            :http_(io_svc)
-            ,socket_(http_)
-            ,upobj_(upobj)
-            ,http_file_(http_file)
-            ,bRunning(false)
+            boost::asio::io_service & io_svc, 
+            std::string http_file) //file seek的位置
+            : DownloadSink(http_file, 0, 0)
+            , http_(io_svc)
+            , socket_(http_)
+            , http_file_(http_file)
+            , bRunning(false)
         {
 
         }
@@ -70,16 +63,12 @@ namespace ppbox
                 bRunning = true;
             }
 
-            boost::uint32_t total_size = util::buffers::buffers_size(tag.data);
             boost::asio::write(
                 //socket_, 
                 http_, 
                 tag.data, 
                 boost::asio::transfer_all(), 
                 ec);
-
-            //上报下载信息
-            upobj_->up_report(ReportData(total_size,tag.time));
             return ec;
 
         }

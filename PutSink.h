@@ -10,20 +10,21 @@ namespace ppbox
 {
     namespace download
     {
-        class UpReport;
 
-        class PutSink : public DownloadSink
+        class PutSink 
+		    : public DownloadSink
         {
         public:
-            //DownloadSink();  ×ÜÊ±³¤
             PutSink(
-                boost::asio::io_service & io_svc
-                ,UpReport* upobj
-                ,std::string http_file); 
+                boost::asio::io_service & io_svc, 
+                std::string http_file); 
+
             virtual ~PutSink();
 
-          private:
-            boost::system::error_code on_finish( boost::system::error_code const &ec);
+        private:
+            boost::system::error_code on_finish(
+                boost::system::error_code const &ec);
+
             virtual boost::system::error_code write(
                 boost::posix_time::ptime const & time_send,
                 ppbox::demux::Sample&);
@@ -31,7 +32,6 @@ namespace ppbox
         private:
             util::protocol::HttpClient http_;
             util::protocol::HttpChunkedSocket<util::protocol::HttpSocket> socket_;
-            UpReport* upobj_;
             std::string http_file_;
             bool bRunning;
         };

@@ -1,51 +1,46 @@
-#ifndef _PPBOX_RTSPD_DOWNLOAD_DISPATCHER_H_
-#define _PPBOX_RTSPD_DOWNLOAD_DISPATCHER_H_
+#ifndef _PPBOX_DOWNLOAD_MUX_DOWNLOADHER_H_
+#define _PPBOX_DOWNLOAD_MUX_DOWNLOADHER_H_
 
-#include "ppbox/download/UpReport.h"
-
-#include <ppbox/mux/tool/Dispatcher.h>
-
-#include <boost/asio/ip/tcp.hpp>
+#include "ppbox/download/Downloader.h"
 
 namespace ppbox
 {
     namespace mux
     {
-        struct MuxTag;
+        class Dispatcher;
         class Sink;
     }
 
     namespace download
-    {  
-        class DownloadSink;
-        struct FileDownloadStatistic;
+    { 
 
-
-        class DownloadDispatcher 
-            : public ppbox::mux::Dispatcher, public UpReport
+        class MuxDownloader 
+            : public Downloader
         {
         public:
-            DownloadDispatcher( util::daemon::Daemon & daemon);
-            ~DownloadDispatcher();
+            MuxDownloader(
+                boost::asio::io_service & io_svc);
+
+            ~MuxDownloader();
 
             //打开一个下载链接
             boost::system::error_code open(
-                std::string const & play_link
-                ,std::string const & format
-                ,std::string const & dst
-                ,std::string const & filename);
+                std::string const & play_link, 
+                std::string const & format, 
+                std::string const & filename, 
+                response_type const & resp);
             //关闭
-             boost::system::error_code close();
+             boost::system::error_code close(
+                 boost::system::error_code & ec);
 
-             void get_download_statictis(
-                 FileDownloadStatistic & download_statistic,
+			 boost::system::error_code get_download_statictis(
+                 DownloadStatistic & download_statistic,
                  boost::system::error_code & ec);
 
              bool is_free();
 
              //主线程
         private:
-             void on_up_report(ReportData const & rdata);
              void clear();
 
        //dispatch线程
@@ -63,12 +58,12 @@ namespace ppbox
             void on_seek(
                 boost::system::error_code const & ec);
 
-            virtual void up_report(ReportData const & rdata);
-
         //aviable list
         private:
+            boost::asio::io_service * io_svc_;
+			ppbox::mux::Dispatcher * dispatcher_;
+
             boost::uint32_t session_id_;
-            FileDownloadStatistic* status_;
             ppbox::mux::Sink* sink_;
 
             boost::uint32_t seek_time_; //计算出seek的值
@@ -85,4 +80,4 @@ namespace ppbox
     } // namespace rtspd
 } // namespace ppbox
 
-#endif // _PPBOX_RTSPD_RTP_DISPATCHER_H_
+#endif // _PPBOX_DOWNLOAD_MUX_DOWNLOADHER_H_
