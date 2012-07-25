@@ -46,6 +46,7 @@ namespace ppbox
 
             boost::system::error_code ec;
 
+            resp_ = resp;
             filename_ = filename;
             std::string tmpfile= filename_;
 
@@ -74,7 +75,6 @@ namespace ppbox
 #else
             ec = error::not_support_download;
 #endif
-            resp_ = resp;
             return ec;
         }
 
