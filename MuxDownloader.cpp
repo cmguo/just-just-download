@@ -7,7 +7,7 @@
 #include "ppbox/download/FileParse.h"
 
 #include <ppbox/mux/Muxer.h>
-#include <ppbox/demux/DemuxerError.h>
+#include <ppbox/demux/base/DemuxerError.h>
 #include <ppbox/mux/tool/Dispatcher.h>
 
 #include <framework/timer/TickCounter.h>
