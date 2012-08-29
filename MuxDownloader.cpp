@@ -11,7 +11,7 @@
 #include <ppbox/mux/tool/Dispatcher.h>
 
 #include <framework/timer/TickCounter.h>
-#include <framework/logger/LoggerStreamRecord.h>
+#include <framework/logger/StreamRecord.h>
 using namespace framework::logger;
 
 #include <boost/bind.hpp>
@@ -65,7 +65,7 @@ namespace ppbox
             ec = file.get_seektime(format,filename_,seek_time_,seek_size_);
             if(!ec)
             {
-                LOG_S(Logger::kLevelAlarm, "MuxDownloader::open, ec:"<<ec.message());
+                LOG_WARN("MuxDownloader::open, ec:"<<ec.message());
             }
 
             return dispatcher_->open(session_id_,play_link,format,true, boost::bind(&MuxDownloader::on_open,this,_1));
@@ -164,7 +164,7 @@ namespace ppbox
             //判断ec 的值  是为何结束?
             //退出下载时
             clear();
-            LOG_S(Logger::kLevelEvent, "[MuxDownloader::on_play] ec:"<<ec.message());
+            LOG_INFO("[MuxDownloader::on_play] ec:"<<ec.message());
             ec_ = ec;
             if (ec_ == ppbox::demux::error::no_more_sample)
             {

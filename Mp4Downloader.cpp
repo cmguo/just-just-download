@@ -8,7 +8,7 @@
 #include <util/protocol/pptv/Url.h>
 
 #include <framework/logger/Logger.h>
-#include <framework/logger/LoggerStreamRecord.h>
+#include <framework/logger/StreamRecord.h>
 
 using namespace framework::logger;
 
@@ -39,7 +39,7 @@ namespace ppbox
             std::string  const & filename, 
             response_type const& resp)
         {
-            LOG_S(Logger::kLevelEvent, "[add] play_link:"<<playlink
+            LOG_INFO("[add] play_link:"<<playlink
                 <<" format:"<<format
                 <<" filename:"<<filename);
 
@@ -82,7 +82,7 @@ namespace ppbox
         {
             if(ec)
             {
-                LOG_S(Logger::kLevelEvent, "[async_open_callback] ec:"<<ec.message());
+                LOG_INFO("[async_open_callback] ec:"<<ec.message());
                 resp_(ec);
             }
             else
@@ -104,7 +104,7 @@ namespace ppbox
         void Mp4Downloader::async_body_callback(
             boost::system::error_code const & ec)
         {
-            LOG_S(Logger::kLevelEvent, "[async_body_callback] ec:"<<ec.message());
+            LOG_INFO("[async_body_callback] ec:"<<ec.message());
             file_.close();
 
             resp_(ec);//»Øµ÷
@@ -113,7 +113,7 @@ namespace ppbox
 		boost::system::error_code Mp4Downloader::close(
             boost::system::error_code & ec)
         {
-            LOG_S(Logger::kLevelEvent, "[del]");
+            LOG_INFO("[del]");
 #if !defined(PPBOX_DISABLE_VOD) || !defined(PPBOX_DISABLE_PEER)
             bigmp4_.cancel();
 #endif

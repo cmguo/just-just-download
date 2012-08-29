@@ -5,13 +5,7 @@
 
 #include "ppbox/download/Downloader.h"
 #include "ppbox/download/CommonType.h"
-#ifndef PPBOX_DISABLE_VOD 
-#include "ppbox/vod/BigMp4.h"
-#endif
-
-#ifndef PPBOX_DISABLE_PEER
-#include "ppbox/peer/BigMp4.h"
-#endif
+#include "ppbox/segment/BigMp4.h"
 
 #include <fstream>
 
@@ -52,17 +46,9 @@ namespace ppbox
 
 
         private:
-#ifndef PPBOX_DISABLE_VOD 
-            ppbox::vod::BigMp4 bigmp4_;
-#endif
-
-#ifndef PPBOX_DISABLE_PEER 
-            ppbox::peer::BigMp4 bigmp4_;
-#endif
+            ppbox::segment::BigMp4 bigmp4_;
             std::string filename_;
-
             boost::uint32_t head_size_;
-
             std::fstream file_;
 			response_type  resp_;
         };
