@@ -5,7 +5,7 @@
 
 #include "ppbox/download/Record.h"
 
-#include <ppbox/demux/DemuxerModule.h>
+#include <ppbox/demux/DemuxModule.h>
 using namespace ppbox::demux;
 
 using namespace boost::system;
