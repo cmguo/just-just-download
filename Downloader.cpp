@@ -17,12 +17,15 @@ namespace ppbox
         {
         }
 
-		boost::uint32_t Downloader::calc_speed(
+        boost::uint32_t Downloader::calc_speed(
             boost::uint64_t new_size)
         {
-            boost::uint32_t speed = (new_size - last_size_) * 1000 / tick_count_.elapsed();
-			last_size_ = new_size;
-			tick_count_.reset();
+            boost::uint32_t elapse = tick_count_.elapsed();
+            if (elapse == 0)
+                return 0;
+            boost::uint32_t speed = (new_size - last_size_) * 1000 / elapse;
+            last_size_ = new_size;
+            tick_count_.reset();
             return speed; 
         }
 

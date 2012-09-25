@@ -46,7 +46,7 @@ namespace ppbox
                 boost::system::error_code & ec);
 
             boost::system::error_code get_last_error(
-                DownloadHander const download_hander) const;
+                Downloader * downloader);
 
         private:
             void add_call_back(

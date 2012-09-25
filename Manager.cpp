@@ -17,7 +17,7 @@ namespace ppbox
     {
         Manager::Manager(util::daemon::Daemon & daemon)
 #ifdef  PPBOX_DISABLE_CERTIFY
-			: ppbox::common::CommonModuleBase<Manager>(daemon, "download")
+            : ppbox::common::CommonModuleBase<Manager>(daemon, "download")
 #else
             : ppbox::certify::CertifyUserModuleBase<Manager>(daemon, "download")
 #endif
@@ -32,7 +32,7 @@ namespace ppbox
         {
         #ifndef  PPBOX_DISABLE_CERTIFY
             start_certify();
-		#endif
+        #endif
             return error_code();
         }
 
@@ -42,26 +42,26 @@ namespace ppbox
 
          #ifndef  PPBOX_DISABLE_CERTIFY
             stop_certify();
-		 #endif
+         #endif
             std::vector<ppbox::download::DownloadInfo>::iterator iter = info_vec_.begin();
-			error_code ec;
-			while(info_vec_.end() != iter) {
+            error_code ec;
+            while(info_vec_.end() != iter) {
                 if (iter->cur_status == working) {
                     iter->cur_status = canceling;
-			    	iter->downloader->close(ec);
-					++iter;
-			    } else if (stopped == iter->cur_status) {
-			    	iter->cur_status = deleted;
-			    	delete iter->downloader;
-			    	iter = info_vec_.erase(iter);
-			    	ec.clear();
-			    } else {
-					++iter;
-				}
-		    }
-		    while(!info_vec_.empty()) {
-			    cond_.wait(lc);
-		    }         
+                    iter->downloader->close(ec);
+                    ++iter;
+                } else if (stopped == iter->cur_status) {
+                    iter->cur_status = deleted;
+                    delete iter->downloader;
+                    iter = info_vec_.erase(iter);
+                    ec.clear();
+                } else {
+                    ++iter;
+                }
+            }
+            while(!info_vec_.empty()) {
+                cond_.wait(lc);
+            }         
         }
 
         // 进入认证成功状态
@@ -89,12 +89,12 @@ namespace ppbox
             std::string const & format,
             std::string const & filename,
             error_code & ec,
-			Downloader::response_type const & resp)
+            Downloader::response_type const & resp)
         {
-			boost::mutex::scoped_lock lc(mutex_);
+            boost::mutex::scoped_lock lc(mutex_);
 
             DownloadInfo info;
-			info.resp = resp;
+            info.resp = resp;
             if(format == "mp4" ) {
                 Mp4Downloader * mp4_download = new Mp4Downloader(io_svc());
                 info.downloader = mp4_download;
@@ -110,41 +110,42 @@ namespace ppbox
             return info.downloader;
         }
 
-		struct FindDownloader
-		{
-			FindDownloader(
-				Downloader * downloader)
-				: downloader_(downloader)
-			{
-			}
-			
-			bool operator()(DownloadInfo const & info) const
-			{
-				return downloader_ == info.downloader;
-			}
+        struct FindDownloader
+        {
+            FindDownloader(
+                Downloader * downloader)
+                : downloader_(downloader)
+            {
+            }
+            
+            bool operator()(DownloadInfo const & info) const
+            {
+                return downloader_ == info.downloader;
+            }
 
-    	private:
-			Downloader * downloader_;
-		};
+        private:
+            Downloader * downloader_;
+        };
 
         void Manager::add_call_back(
             Downloader * downloader,
             boost::system::error_code const  & ec)
         {
-			boost::mutex::scoped_lock lc(mutex_);
+            boost::mutex::scoped_lock lc(mutex_);
 
             std::vector<DownloadInfo>::iterator itr = 
-				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
-			assert(itr != info_vec_.end());
+                std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+            assert(itr != info_vec_.end());
             if (itr == info_vec_.end())
-				return;
+                return;
 
-			itr->resp(ec);
+            itr->resp(ec);
+            itr->error_code = ec;
             if (working == itr->cur_status) {
                 itr->cur_status = stopped;
             } else if (canceling == itr->cur_status) {
                 itr->cur_status = deleted;
-		     	delete downloader;
+                 delete downloader;
                 info_vec_.erase(itr);
             }
         }
@@ -153,26 +154,26 @@ namespace ppbox
             Downloader * downloader,
             error_code & ec)
         {
-			boost::mutex::scoped_lock lc(mutex_);
+            boost::mutex::scoped_lock lc(mutex_);
 
             std::vector<DownloadInfo>::iterator itr = 
-				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
-			assert(itr != info_vec_.end());
+                std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+            assert(itr != info_vec_.end());
             if (itr == info_vec_.end())
-				return ec = framework::system::logic_error::item_not_exist;
+                return ec = framework::system::logic_error::item_not_exist;
 
             DownloadInfo & info = *itr;
             if (working == info.cur_status) {
                 info.cur_status = canceling;
-				info.downloader->close(ec);
+                info.downloader->close(ec);
             } else if (stopped == info.cur_status) {
                 info.cur_status = deleted;
                 delete itr->downloader;
-				info_vec_.erase(itr);
-				ec.clear();
+                info_vec_.erase(itr);
+                ec.clear();
             } else if (canceling == info.cur_status) {
-				ec = framework::system::logic_error::item_not_exist;
-			}
+                ec = framework::system::logic_error::item_not_exist;
+            }
             return ec;
         }
 
@@ -181,16 +182,20 @@ namespace ppbox
             DownloadStatistic & stat,
             error_code & ec)
         {
-			boost::mutex::scoped_lock lc(mutex_);
+            boost::mutex::scoped_lock lc(mutex_);
 
             std::vector<DownloadInfo>::iterator itr = 
-				std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
-			assert(itr != info_vec_.end());
+                std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+            assert(itr != info_vec_.end());
             if (itr == info_vec_.end())
-				return ec = framework::system::logic_error::item_not_exist;
+                return ec = framework::system::logic_error::item_not_exist;
 
-            downloader->get_download_statictis(stat, ec);
-            
+            if (!itr->error_code) {
+                downloader->get_download_statictis(stat, ec);
+            } else {
+                ec = itr->error_code;
+            }
+
             return ec;
         }
 // 
@@ -201,15 +206,20 @@ namespace ppbox
 //         }
 
         error_code Manager::get_last_error(
-				DownloadHander const download_hander) const
+                Downloader * downloader)
         {
             error_code ec;
-            return ec;
+            std::vector<DownloadInfo>::iterator itr = 
+                std::find_if(info_vec_.begin(), info_vec_.end(), FindDownloader(downloader));
+            if (itr == info_vec_.end()) {
+                return ec;
+            }
+            return itr->error_code;
 
         }
 
         void Manager::set_download_path(
-				char const * path)
+                char const * path)
         {
 
         }

@@ -8,26 +8,27 @@ namespace ppbox
     namespace download
     {
 
-		enum DownloadStatusEnum {
-			working,
-			canceling,
-			stopped,
-			deleted,
-			unknow
-		};
+        enum DownloadStatusEnum {
+            working,
+            canceling,
+            stopped,
+            deleted,
+            unknow
+        };
 
-		class Downloader;
+        class Downloader;
 
         struct DownloadInfo
         {
             DownloadInfo()
             {
                 downloader = NULL;
-				cur_status = unknow;
+                cur_status = unknow;
             }
             Downloader * downloader;
-			DownloadStatusEnum cur_status;
-			Downloader::response_type resp;  
+            DownloadStatusEnum cur_status;
+            Downloader::response_type resp;
+            boost::system::error_code error_code;
         };
 
     }//download
