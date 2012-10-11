@@ -10,13 +10,13 @@
 #include <ppbox/demux/base/DemuxerError.h>
 #include <ppbox/mux/tool/Dispatcher.h>
 
-#include <framework/timer/TickCounter.h>
+#include <framework/timer/TimeCounter.h>
 #include <framework/logger/StreamRecord.h>
 using namespace framework::logger;
 
 #include <boost/bind.hpp>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("MuxDownloader", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.MuxDownloader", Debug)
 
 namespace ppbox
 {

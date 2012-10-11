@@ -6,7 +6,7 @@
 #include <ppbox/demux/base/DemuxerBase.h>
 #include <ppbox/demux/base/DemuxerError.h>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("PutSink", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.PutSink", Debug)
 
 namespace ppbox
 {

@@ -1,7 +1,7 @@
 #ifndef _PPBOX_DOWNLOAD_RTPSINK_H_
 #define _PPBOX_DOWNLOAD_RTPSINK_H_
 
-#include <ppbox/mux/tool/Sink.h>
+#include <ppbox/data/Sink.h>
 
 #include <fstream>
 
@@ -12,7 +12,7 @@ namespace ppbox
         class UpReport;
 
         class DownloadSink 
-            : public ppbox::mux::Sink
+            : public ppbox::data::Sink
         {
         public:
             DownloadSink(

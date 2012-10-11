@@ -7,7 +7,7 @@
 #include <ppbox/demux/base/DemuxerError.h>
 
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DownloadSink", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.DownloadSink", Debug)
 
 namespace ppbox
 {

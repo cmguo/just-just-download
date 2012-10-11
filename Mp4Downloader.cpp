@@ -21,7 +21,7 @@ using namespace ppbox::vod;
 using namespace ppbox::peer;
 #endif
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("Mp4Downloader", 0);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.Mp4Downloader", Debug);
 
 namespace ppbox
 {

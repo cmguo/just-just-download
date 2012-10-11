@@ -14,7 +14,7 @@
 
 
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("DownloadFileParse", 0)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.DownloadFileParse", Debug)
 
 namespace ppbox
 {
