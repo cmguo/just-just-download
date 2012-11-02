@@ -4,13 +4,10 @@
 #include "ppbox/download/Version.h"
 #include "ppbox/download/Manager.h"
 
-//#include <framework/logger/LoggerSection.h>
 #include <framework/process/Process.h>
 #include <framework/process/SignalHandler.h>
 
 #include <boost/bind.hpp>
-
-FRAMEWORK_LOGGER_DECLARE_MODULE("ppbox_download");
 
 int download_main(int argc, char * argv[])
 {
@@ -40,7 +37,7 @@ int download_main(int argc, char * argv[])
     common.set_version(ppbox::download::version());
 
 
-    util::daemon::use_module<ppbox::download::Manager>(my_daemon);
+    util::daemon::use_module<ppbox::download::DownloadModule>(my_daemon);
 
     my_daemon.start(framework::this_process::notify_wait);
 
