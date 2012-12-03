@@ -80,8 +80,8 @@ namespace ppbox
                 ec.clear();
                 return true;
             }
-            ppbox::data::PlayInfo info;
-            if (!dispatcher_->get_play_info(info, ec))
+            ppbox::data::StreamStatus info;
+            if (!dispatcher_->get_stream_status(info, ec))
                 return false;
             stat.total_size = info.byte_range.end;
             stat.finish_size = info.byte_range.pos;
