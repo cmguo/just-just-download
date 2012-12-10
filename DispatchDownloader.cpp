@@ -25,10 +25,12 @@ namespace ppbox
         DispatchDownloader::DispatchDownloader(
             boost::asio::io_service & io_svc)
             : Downloader(io_svc)
+            , file_sink_(NULL)
             , sink_(NULL)
             , opened_(false)
         {
-            sink_ = new ppbox::data::FileSink(io_svc);
+            file_sink_ = new ppbox::data::FileSink(io_svc);
+            sink_ = new ppbox::dispatch::WrapSink(*file_sink_);
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc);
             dispatcher_ = disp_mod.alloc_dispatcher(false);
@@ -39,6 +41,7 @@ namespace ppbox
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
             disp_mod.free_dispatcher(dispatcher_);
+            delete file_sink_;
             delete sink_;
         }
 
@@ -48,7 +51,7 @@ namespace ppbox
         {
             Downloader::open(url, resp);
             boost::system::error_code ec;
-            if (sink_->open(url, ec)) {
+            if (file_sink_->open(url, ec)) {
                 response(ec);
                 return;
             }
@@ -107,8 +110,8 @@ namespace ppbox
 
             ppbox::dispatch::SeekRange range;
             range.type = ppbox::dispatch::SeekRange::byte;
-            sink_->file_stream().seekp(0, std::ios::end);
-            range.beg = sink_->file_stream().tellp();
+            file_sink_->file_stream().seekp(0, std::ios::end);
+            range.beg = file_sink_->file_stream().tellp();
             if (range.beg == 0) {
                 range.type = ppbox::dispatch::SeekRange::none;
             }

@@ -5,6 +5,8 @@
 
 #include "ppbox/download/Downloader.h"
 
+#include <ppbox/dispatch/Sink.h>
+
 namespace ppbox
 {
     namespace data
@@ -15,6 +17,7 @@ namespace ppbox
     namespace dispatch
     {
         class DispatcherBase;
+        class Sink;
     }
 
     namespace download
@@ -54,7 +57,8 @@ namespace ppbox
 
         private:
             ppbox::dispatch::DispatcherBase * dispatcher_;
-            ppbox::data::FileSink * sink_;
+            ppbox::data::FileSink * file_sink_;
+            ppbox::dispatch::Sink * sink_;
             bool opened_;
         };
 
