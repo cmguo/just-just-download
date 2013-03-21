@@ -1,7 +1,7 @@
-// DemuxerModule.h
+// DownloadModule.h
 
-#ifndef _PPBOX_DEMUX_DEMUXER_MODULE_H_
-#define _PPBOX_DEMUX_DEMUXER_MODULE_H_
+#ifndef _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
+#define _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
 
 #include <framework/string/Url.h>
 
@@ -88,4 +88,4 @@ namespace ppbox
     } // namespace download
 } // namespace ppbox
 
-#endif // _PPBOX_DEMUX_DEMUXER_MODULE_H_
+#endif // _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
