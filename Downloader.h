@@ -24,7 +24,7 @@ namespace ppbox {
         public:
             virtual void open(
                 framework::string::Url const & url,
-                response_type const & resp);
+                response_type const & resp) = 0;
 
             virtual bool cancel(
                 boost::system::error_code & ec) = 0;
@@ -43,6 +43,9 @@ namespace ppbox {
             }
 
         protected:
+            void set_response(
+                response_type const & resp);
+
             void response(
                 boost::system::error_code const & ec);
 

@@ -5,8 +5,11 @@
 
 #include <ppbox/dispatch/DispatchModule.h>
 #include <ppbox/dispatch/DispatcherBase.h>
+#include <ppbox/dispatch/Sink.h>
 
-#include <ppbox/data/sink/FileSink.h>
+#include <ppbox/data/base/UrlSource.h>
+#include <ppbox/data/base/UrlSink.h>
+#include <ppbox/data./sink/FileSink.h>
 
 #include <framework/timer/TimeCounter.h>
 #include <framework/logger/Logger.h>
@@ -25,12 +28,11 @@ namespace ppbox
         DispatchDownloader::DispatchDownloader(
             boost::asio::io_service & io_svc)
             : Downloader(io_svc)
-            , file_sink_(NULL)
+            //, url_source_(NULL)
+            , url_sink_(NULL)
             , sink_(NULL)
             , opened_(false)
         {
-            file_sink_ = new ppbox::data::FileSink(io_svc);
-            sink_ = new ppbox::dispatch::WrapSink(*file_sink_);
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc);
             dispatcher_ = disp_mod.alloc_dispatcher(false);
@@ -41,23 +43,29 @@ namespace ppbox
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
             disp_mod.free_dispatcher(dispatcher_);
-            delete file_sink_;
-            delete sink_;
+            if (sink_) {
+                delete sink_;
+            }
+            if (url_sink_) {
+                delete url_sink_;
+            }
+            //if (url_source_) {
+            //    delete url_source_;
+            //}
         }
 
         void DispatchDownloader::open(
             framework::string::Url const & url,
             response_type const & resp)
         {
-            Downloader::open(url, resp);
-            boost::system::error_code ec;
-            if (file_sink_->open(url, ec)) {
-                response(ec);
-                return;
-            }
-            dispatcher_->async_open(
-                url, 
-                boost::bind(&DispatchDownloader::handle_open, this ,_1));
+            url_ = url;
+            Downloader::set_response(resp);
+            //url_source_ = ppbox::data::UrlSource::create(io_svc, url.protocol());
+            //url_source_->async_open(url_, 
+            //    boost::bind(&DispatchDownloader::handle_source, this ,_1));
+            url_sink_ = ppbox::data::UrlSink::create(io_svc(), url.protocol());
+            url_sink_->async_open(url_, 
+                boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
         }
 
         bool DispatchDownloader::cancel(
@@ -92,28 +100,57 @@ namespace ppbox
             return true;
         }
 
-        void DispatchDownloader::handle_open(
+        //void DispatchDownloader::handle_source_open(
+        //    boost::system::error_code const & ec)
+        //{
+        //    LOG_INFO("[handle_source_open] ec:" << ec.message());
+        //}
+
+        void DispatchDownloader::handle_sink_open(
             boost::system::error_code const & ec)
         {
-            LOG_INFO("[handle_open] ec:" << ec.message());
+            LOG_INFO("[handle_sink_open] ec:" << ec.message());
 
-            boost::system::error_code ec1 = ec;
-            if (!ec1) {
-                dispatcher_->setup(-1, *sink_, ec1);
+            if (ec) {
+                response(ec);
+                return;
             }
-            if (ec1) {
-                response(ec1);
+
+            dispatcher_->async_open(
+                url_, 
+                boost::bind(&DispatchDownloader::handle_dispatcher_open, this ,_1));
+        }
+
+        void DispatchDownloader::handle_dispatcher_open(
+            boost::system::error_code ec)
+        {
+            LOG_INFO("[handle_dispatcher_open] ec:" << ec.message());
+
+            if (!ec) {
+                url_sink_->set_non_block(true, ec);
+            }
+
+            if (!ec) {
+                sink_ = new ppbox::dispatch::WrapSink(*url_sink_);
+                dispatcher_->setup(-1, *sink_, ec);
+            }
+
+            if (ec) {
+                response(ec);
                 return;
             }
 
             opened_ = true;
 
             ppbox::dispatch::SeekRange range;
-            range.type = ppbox::dispatch::SeekRange::byte;
-            file_sink_->file_stream().seekp(0, std::ios::end);
-            range.beg = file_sink_->file_stream().tellp();
-            if (range.beg == 0) {
-                range.type = ppbox::dispatch::SeekRange::none;
+            if (url_.protocol() == "file") {
+                range.type = ppbox::dispatch::SeekRange::byte;
+                ppbox::data::FileSink * file_sink = static_cast<ppbox::data::FileSink *>(url_sink_);
+                file_sink->file_stream().seekp(0, std::ios::end);
+                range.beg = file_sink->file_stream().tellp();
+                if (range.beg == 0) {
+                    range.type = ppbox::dispatch::SeekRange::none;
+                }
             }
             calc_speed(range.beg);
             dispatcher_->async_play(

@@ -5,13 +5,11 @@
 
 #include "ppbox/download/Downloader.h"
 
-#include <ppbox/dispatch/Sink.h>
-
 namespace ppbox
 {
     namespace data
     {
-        class FileSink;
+        class UrlSink;
     }
 
     namespace dispatch
@@ -48,16 +46,26 @@ namespace ppbox
                 boost::system::error_code & ec);
 
         private:
-            //call back
-            void handle_open(
+            //void handle_source_open(
+            //    boost::system::error_code const & ec);
+
+            //void handle_source_read(
+            //    boost::system::error_code const & ec);
+
+            void handle_sink_open(
                 boost::system::error_code const & ec);
+
+            void handle_dispatcher_open(
+                boost::system::error_code ec);
 
             void handle_play(
                 boost::system::error_code const & ec);
 
         private:
             ppbox::dispatch::DispatcherBase * dispatcher_;
-            ppbox::data::FileSink * file_sink_;
+            framework::string::Url url_;
+            //ppbox::data::UrlSource * url_source_;
+            ppbox::data::UrlSink * url_sink_;
             ppbox::dispatch::Sink * sink_;
             bool opened_;
         };

@@ -21,8 +21,7 @@ namespace ppbox
         {
         }
 
-        void Downloader::open(
-            framework::string::Url const & url,
+        void Downloader::set_response(
             response_type const & resp)
         {
             resp_ = resp;
@@ -40,8 +39,10 @@ namespace ppbox
             boost::uint64_t new_size)
         {
             boost::uint32_t elapse = tick_count_.elapsed();
-            if (elapse == 0)
+            if (elapse == 0) {
+                last_size_ = new_size;
                 return 0;
+            }
             boost::uint32_t speed = (boost::uint32_t)((new_size - last_size_) * 1000 / elapse);
             last_size_ = new_size;
             tick_count_.reset();
