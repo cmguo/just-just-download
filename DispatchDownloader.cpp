@@ -9,7 +9,7 @@
 
 #include <ppbox/data/base/UrlSource.h>
 #include <ppbox/data/base/UrlSink.h>
-#include <ppbox/data./sink/FileSink.h>
+#include <ppbox/data/sink/FileSink.h>
 
 #include <framework/timer/TimeCounter.h>
 #include <framework/logger/Logger.h>
