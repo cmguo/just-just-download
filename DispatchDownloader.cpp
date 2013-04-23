@@ -5,7 +5,6 @@
 
 #include <ppbox/dispatch/DispatchModule.h>
 #include <ppbox/dispatch/DispatcherBase.h>
-#include <ppbox/dispatch/Sink.h>
 
 #include <ppbox/data/base/UrlSource.h>
 #include <ppbox/data/base/UrlSink.h>
@@ -30,7 +29,6 @@ namespace ppbox
             : Downloader(io_svc)
             //, url_source_(NULL)
             , url_sink_(NULL)
-            , sink_(NULL)
             , opened_(false)
         {
             ppbox::dispatch::DispatchModule & disp_mod = 
@@ -43,9 +41,6 @@ namespace ppbox
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
             disp_mod.free_dispatcher(dispatcher_);
-            if (sink_) {
-                delete sink_;
-            }
             if (url_sink_) {
                 delete url_sink_;
             }
@@ -134,8 +129,7 @@ namespace ppbox
             }
 
             if (!ec) {
-                sink_ = new ppbox::dispatch::WrapSink(*url_sink_);
-                dispatcher_->setup(-1, *sink_, ec);
+                dispatcher_->setup(-1, *url_sink_, ec);
             }
 
             if (ec) {

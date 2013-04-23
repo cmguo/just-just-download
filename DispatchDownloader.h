@@ -5,17 +5,13 @@
 
 #include "ppbox/download/Downloader.h"
 
+#include <ppbox/dispatch/DispatchBase.h>
+
 namespace ppbox
 {
     namespace data
     {
         class UrlSink;
-    }
-
-    namespace dispatch
-    {
-        class DispatcherBase;
-        class Sink;
     }
 
     namespace download
@@ -66,7 +62,6 @@ namespace ppbox
             framework::string::Url url_;
             //ppbox::data::UrlSource * url_source_;
             ppbox::data::UrlSink * url_sink_;
-            ppbox::dispatch::Sink * sink_;
             bool opened_;
         };
 
