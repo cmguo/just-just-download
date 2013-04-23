@@ -128,6 +128,9 @@ namespace ppbox
 
             if (!ec) {
                 url_sink_->set_non_block(true, ec);
+                if (ec == framework::system::logic_error::not_supported) {
+                    ec.clear();
+                }
             }
 
             if (!ec) {
