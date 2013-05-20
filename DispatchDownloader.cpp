@@ -38,15 +38,15 @@ namespace ppbox
 
         DispatchDownloader::~DispatchDownloader()
         {
-            ppbox::dispatch::DispatchModule & disp_mod = 
-                util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
-            disp_mod.free_dispatcher(dispatcher_);
-            if (url_sink_) {
-                delete url_sink_;
-            }
             //if (url_source_) {
             //    delete url_source_;
             //}
+            if (url_sink_) {
+                delete url_sink_;
+            }
+            ppbox::dispatch::DispatchModule & disp_mod = 
+                util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
+            disp_mod.free_dispatcher(dispatcher_);
         }
 
         void DispatchDownloader::open(
@@ -76,6 +76,9 @@ namespace ppbox
         bool DispatchDownloader::close(
             boost::system::error_code & ec)
         {
+            if (url_sink_) {
+                url_sink_->close(ec);
+            }
             return dispatcher_->close(ec);
         }
 
