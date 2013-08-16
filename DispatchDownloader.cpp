@@ -62,9 +62,13 @@ namespace ppbox
             //url_source_ = ppbox::data::UrlSource::create(io_svc, url.protocol());
             //url_source_->async_open(url_, 
             //    boost::bind(&DispatchDownloader::handle_source, this ,_1));
-            url_sink_ = ppbox::data::UrlSink::create(io_svc(), url_.protocol());
-            url_sink_->async_open(url_, 
-                boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
+            url_sink_ = ppbox::data::UrlSink::create(io_svc(), url_.protocol(), ec);
+            if (url_sink_) {
+                url_sink_->async_open(url_, 
+                    boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
+            } else {
+                Downloader::response(ec);
+            }
         }
 
         bool DispatchDownloader::cancel(
