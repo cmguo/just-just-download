@@ -65,6 +65,8 @@ namespace ppbox
             url_sink_ = ppbox::data::UrlSink::create(io_svc(), url_.protocol(), ec);
             if (url_sink_) {
                 url_sink_->async_open(url_, 
+                    ppbox::data::invalid_size, 
+                    ppbox::data::invalid_size, 
                     boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
             } else {
                 Downloader::response(ec);
@@ -151,14 +153,10 @@ namespace ppbox
             opened_ = true;
 
             ppbox::dispatch::SeekRange range;
-            if (url_.protocol() == "file") {
-                range.type = ppbox::dispatch::SeekRange::byte;
-                ppbox::data::FileSink * file_sink = static_cast<ppbox::data::FileSink *>(url_sink_);
-                file_sink->file_stream().seekp(0, std::ios::end);
-                range.beg = file_sink->file_stream().tellp();
-                if (range.beg == 0) {
-                    range.type = ppbox::dispatch::SeekRange::none;
-                }
+            range.type = ppbox::dispatch::SeekRange::byte;
+            range.beg = url_sink_->total(ec);
+            if (range.beg == 0) {
+                range.type = ppbox::dispatch::SeekRange::none;
             }
             calc_speed(range.beg);
             dispatcher_->async_play(
