@@ -6,9 +6,8 @@
 #include <ppbox/dispatch/DispatchModule.h>
 #include <ppbox/dispatch/DispatcherBase.h>
 
-#include <ppbox/data/base/UrlSource.h>
-#include <ppbox/data/base/UrlSink.h>
-#include <ppbox/data/sink/FileSink.h>
+#include <util/stream/UrlSink.h>
+#include <util/stream/UrlSource.h>
 
 #include <framework/timer/TimeCounter.h>
 #include <framework/logger/Logger.h>
@@ -59,10 +58,10 @@ namespace ppbox
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
             boost::system::error_code ec;
             disp_mod.normalize_url(url_, ec);
-            //url_source_ = ppbox::data::UrlSource::create(io_svc, url.protocol());
+            //url_source_ = util::stream::UrlSource::create(io_svc, url.protocol());
             //url_source_->async_open(url_, 
             //    boost::bind(&DispatchDownloader::handle_source, this ,_1));
-            url_sink_ = ppbox::data::UrlSink::create(io_svc(), url_.protocol(), ec);
+            url_sink_ = util::stream::UrlSink::create(io_svc(), url_.protocol(), ec);
             if (url_sink_) {
                 url_sink_->async_open(url_, 
                     ppbox::data::invalid_size, 

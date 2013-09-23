@@ -7,6 +7,9 @@
 
 #include <ppbox/dispatch/DispatchBase.h>
 
+#include <util/stream/UrlSink.h>
+#include <util/stream/UrlSource.h>
+
 namespace ppbox
 {
     namespace data
@@ -60,8 +63,8 @@ namespace ppbox
         private:
             ppbox::dispatch::DispatcherBase * dispatcher_;
             framework::string::Url url_;
-            //ppbox::data::UrlSource * url_source_;
-            ppbox::data::UrlSink * url_sink_;
+            //util::stream::UrlSource * url_source_;
+            util::stream::UrlSink * url_sink_;
             bool opened_;
         };
 
