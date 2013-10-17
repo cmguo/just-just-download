@@ -58,10 +58,10 @@ namespace ppbox
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
             boost::system::error_code ec;
             disp_mod.normalize_url(url_, ec);
-            //url_source_ = util::stream::UrlSource::create(io_svc, url.protocol());
+            //url_source_ = util::stream::UrlSourceFactory::create(io_svc, url.protocol());
             //url_source_->async_open(url_, 
             //    boost::bind(&DispatchDownloader::handle_source, this ,_1));
-            url_sink_ = util::stream::UrlSink::create(io_svc(), url_.protocol(), ec);
+            url_sink_ = util::stream::UrlSinkFactory::create(io_svc(), url_.protocol(), ec);
             if (url_sink_) {
                 url_sink_->async_open(url_, 
                     ppbox::data::invalid_size, 
