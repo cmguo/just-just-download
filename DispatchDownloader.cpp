@@ -53,6 +53,7 @@ namespace ppbox
             response_type const & resp)
         {
             url_ = url;
+            url_.param("dispatch.fast", "true");
             Downloader::set_response(resp);
             ppbox::dispatch::DispatchModule & disp_mod = 
                 util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
