@@ -65,8 +65,8 @@ namespace ppbox
             url_sink_ = util::stream::UrlSinkFactory::create(io_svc(), url_.protocol(), ec);
             if (url_sink_) {
                 url_sink_->async_open(url_, 
-                    ppbox::data::invalid_size, 
-                    ppbox::data::invalid_size, 
+                    ppbox::avbase::invalid_size, 
+                    ppbox::avbase::invalid_size, 
                     boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
             } else {
                 Downloader::response(ec);
@@ -99,7 +99,7 @@ namespace ppbox
                 ec.clear();
                 return true;
             }
-            ppbox::data::StreamStatus info;
+            ppbox::avbase::StreamStatus info;
             if (!dispatcher_->get_stream_status(info, ec))
                 return false;
             stat.total_size = info.byte_range.end;
