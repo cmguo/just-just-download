@@ -1,11 +1,11 @@
 // DownloadStatistic.h
 
-#ifndef _PPBOX_DOWNLOAD_DOWNLOAD_STATISTIC_H_
-#define _PPBOX_DOWNLOAD_DOWNLOAD_STATISTIC_H_
+#ifndef _JUST_DOWNLOAD_DOWNLOAD_STATISTIC_H_
+#define _JUST_DOWNLOAD_DOWNLOAD_STATISTIC_H_
 
-#include "ppbox/download/DownloadBase.h"
+#include "just/download/DownloadBase.h"
 
-namespace ppbox {
+namespace just {
 
     namespace download
     {
@@ -28,6 +28,6 @@ namespace ppbox {
         };
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_DOWNLOAD_DOWNLOAD_STATISTIC_H_
+#endif // _JUST_DOWNLOAD_DOWNLOAD_STATISTIC_H_

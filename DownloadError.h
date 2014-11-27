@@ -1,9 +1,9 @@
 // DownloadError.h
 
-#ifndef _PPBOX_DOWNLOAD_ERROR_H_
-#define _PPBOX_DOWNLOAD_ERROR_H_
+#ifndef _JUST_DOWNLOAD_ERROR_H_
+#define _JUST_DOWNLOAD_ERROR_H_
 
-namespace ppbox
+namespace just
 {
     namespace download
     {
@@ -56,7 +56,7 @@ namespace ppbox
         } // namespace error
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
 namespace boost
 {
@@ -64,16 +64,16 @@ namespace boost
     {
 
         template<>
-        struct is_error_code_enum<ppbox::download::error::errors>
+        struct is_error_code_enum<just::download::error::errors>
         {
             BOOST_STATIC_CONSTANT(bool, value = true);
         };
 
 #ifdef BOOST_NO_ARGUMENT_DEPENDENT_LOOKUP
-        using ppbox::download::error::make_error_code;
+        using just::download::error::make_error_code;
 #endif
 
     }
 }
 
-#endif // _PPBOX_DOWNLOAD_ERROR_H_
+#endif // _JUST_DOWNLOAD_ERROR_H_

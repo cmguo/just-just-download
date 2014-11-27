@@ -1,11 +1,11 @@
 // DownloadBase.h
 
-#ifndef _PPBOX_DOWNLOAD_DOWNLOAD_BASE_H_
-#define _PPBOX_DOWNLOAD_DOWNLOAD_BASE_H_
+#ifndef _JUST_DOWNLOAD_DOWNLOAD_BASE_H_
+#define _JUST_DOWNLOAD_DOWNLOAD_BASE_H_
 
 #include <framework/string/Url.h>
 
-namespace ppbox {
+namespace just {
 
     namespace download
     {
@@ -15,6 +15,6 @@ namespace ppbox {
         >  response_type;
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_DOWNLOAD_DOWNLOAD_BASE_H_
+#endif // _JUST_DOWNLOAD_DOWNLOAD_BASE_H_

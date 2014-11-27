@@ -1,10 +1,10 @@
 // DispatchDownloader.cpp
 
-#include "ppbox/download/Common.h"
-#include "ppbox/download/DispatchDownloader.h"
+#include "just/download/Common.h"
+#include "just/download/DispatchDownloader.h"
 
-#include <ppbox/dispatch/DispatchModule.h>
-#include <ppbox/dispatch/DispatcherBase.h>
+#include <just/dispatch/DispatchModule.h>
+#include <just/dispatch/DispatcherBase.h>
 
 #include <util/stream/UrlSink.h>
 #include <util/stream/UrlSource.h>
@@ -16,9 +16,9 @@ using namespace framework::logger;
 
 #include <boost/bind.hpp>
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.DispatchDownloader", framework::logger::Debug)
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.download.DispatchDownloader", framework::logger::Debug)
 
-namespace ppbox
+namespace just
 {
     namespace download
     {
@@ -30,8 +30,8 @@ namespace ppbox
             , url_sink_(NULL)
             , opened_(false)
         {
-            ppbox::dispatch::DispatchModule & disp_mod = 
-                util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc);
+            just::dispatch::DispatchModule & disp_mod = 
+                util::daemon::use_module<just::dispatch::DispatchModule>(io_svc);
             dispatcher_ = disp_mod.alloc_dispatcher(false);
         }
 
@@ -43,8 +43,8 @@ namespace ppbox
             if (url_sink_) {
                 delete url_sink_;
             }
-            ppbox::dispatch::DispatchModule & disp_mod = 
-                util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
+            just::dispatch::DispatchModule & disp_mod = 
+                util::daemon::use_module<just::dispatch::DispatchModule>(io_svc());
             disp_mod.free_dispatcher(dispatcher_);
         }
 
@@ -55,8 +55,8 @@ namespace ppbox
             url_ = url;
             url_.param("dispatch.fast", "true");
             Downloader::set_response(resp);
-            ppbox::dispatch::DispatchModule & disp_mod = 
-                util::daemon::use_module<ppbox::dispatch::DispatchModule>(io_svc());
+            just::dispatch::DispatchModule & disp_mod = 
+                util::daemon::use_module<just::dispatch::DispatchModule>(io_svc());
             boost::system::error_code ec;
             disp_mod.normalize_url(url_, ec);
             //url_source_ = util::stream::UrlSourceFactory::create(io_svc, url.protocol());
@@ -65,8 +65,8 @@ namespace ppbox
             url_sink_ = util::stream::UrlSinkFactory::create(io_svc(), url_.protocol(), ec);
             if (url_sink_) {
                 url_sink_->async_open(url_, 
-                    ppbox::avbase::invalid_size, 
-                    ppbox::avbase::invalid_size, 
+                    just::avbase::invalid_size, 
+                    just::avbase::invalid_size, 
                     boost::bind(&DispatchDownloader::handle_sink_open, this ,_1));
             } else {
                 Downloader::response(ec);
@@ -99,7 +99,7 @@ namespace ppbox
                 ec.clear();
                 return true;
             }
-            ppbox::avbase::StreamStatus info;
+            just::avbase::StreamStatus info;
             if (!dispatcher_->get_stream_status(info, ec))
                 return false;
             stat.total_size = info.byte_range.end;
@@ -152,16 +152,16 @@ namespace ppbox
 
             opened_ = true;
 
-            ppbox::dispatch::SeekRange range;
-            range.type = ppbox::dispatch::SeekRange::byte;
+            just::dispatch::SeekRange range;
+            range.type = just::dispatch::SeekRange::byte;
             range.beg = url_sink_->total(ec);
             if (range.beg == 0) {
-                range.type = ppbox::dispatch::SeekRange::none;
+                range.type = just::dispatch::SeekRange::none;
             }
             calc_speed(range.beg);
             dispatcher_->async_play(
                 range, 
-                ppbox::dispatch::response_t(), 
+                just::dispatch::response_t(), 
                 boost::bind(&DispatchDownloader::handle_play, this, _1));
         }
 
@@ -173,4 +173,4 @@ namespace ppbox
         }
 
     } // namespace download
-} // namespace ppbox
+} // namespace just

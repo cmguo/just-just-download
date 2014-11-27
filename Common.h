@@ -1,5 +1,5 @@
 // Common.h
 
-#include <ppbox/common/Common.h>
+#include <just/common/Common.h>
 
-#include "ppbox/download/DownloadError.h"
+#include "just/download/DownloadError.h"

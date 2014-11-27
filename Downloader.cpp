@@ -1,11 +1,11 @@
 //Downloader.cpp
 
-#include "ppbox/download/Common.h"
-#include "ppbox/download/Downloader.h"
+#include "just/download/Common.h"
+#include "just/download/Downloader.h"
 
 #include <boost/bind.hpp>
 
-namespace ppbox
+namespace just
 {
     namespace download
     {
@@ -50,5 +50,5 @@ namespace ppbox
         }
 
     }//download
-}//ppbox
+}//just
 

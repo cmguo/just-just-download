@@ -1,9 +1,9 @@
 // DemuxerModule.cpp
 
-#include "ppbox/download/Common.h"
-#include "ppbox/download/DownloadModule.h"
-#include "ppbox/download/DispatchDownloader.h"
-#include "ppbox/download/Version.h"
+#include "just/download/Common.h"
+#include "just/download/DownloadModule.h"
+#include "just/download/DispatchDownloader.h"
+#include "just/download/Version.h"
 
 #include <framework/logger/Logger.h>
 #include <framework/logger/StreamRecord.h>
@@ -11,9 +11,9 @@
 #include <boost/bind.hpp>
 using namespace boost::system;
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("ppbox.download.DemuxerModule", framework::logger::Debug);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.download.DemuxerModule", framework::logger::Debug);
 
-namespace ppbox
+namespace just
 {
     namespace download
     {
@@ -62,7 +62,7 @@ namespace ppbox
 
         DownloadModule::DownloadModule(
             util::daemon::Daemon & daemon)
-            : ppbox::common::CommonModuleBase<DownloadModule>(daemon, "DemuxerModule")
+            : just::common::CommonModuleBase<DownloadModule>(daemon, "DemuxerModule")
         {
         }
 
@@ -247,4 +247,4 @@ namespace ppbox
         }
 
     } // namespace download
-} // namespace ppbox
+} // namespace just

@@ -1,10 +1,10 @@
 // Name.h
 
-#ifndef _PPBOX_DOWNLOAD_NAME_H_
-#define _PPBOX_DOWNLOAD_NAME_H_
+#ifndef _JUST_DOWNLOAD_NAME_H_
+#define _JUST_DOWNLOAD_NAME_H_
 
-#include "ppbox/download/Define.h"
+#include "just/download/Define.h"
 
 #include <framework/system/AutoName.h>
 
-#endif // _PPBOX_DOWNLOAD_NAME_H_
+#endif // _JUST_DOWNLOAD_NAME_H_

@@ -1,16 +1,16 @@
 // DispatchDownloader.h
 
-#ifndef _PPBOX_DOWNLOAD_DISPATCH_DOWNLOADHER_H_
-#define _PPBOX_DOWNLOAD_DISPATCH_DOWNLOADHER_H_
+#ifndef _JUST_DOWNLOAD_DISPATCH_DOWNLOADHER_H_
+#define _JUST_DOWNLOAD_DISPATCH_DOWNLOADHER_H_
 
-#include "ppbox/download/Downloader.h"
+#include "just/download/Downloader.h"
 
-#include <ppbox/dispatch/DispatchBase.h>
+#include <just/dispatch/DispatchBase.h>
 
 #include <util/stream/UrlSink.h>
 #include <util/stream/UrlSource.h>
 
-namespace ppbox
+namespace just
 {
     namespace data
     {
@@ -61,7 +61,7 @@ namespace ppbox
                 boost::system::error_code const & ec);
 
         private:
-            ppbox::dispatch::DispatcherBase * dispatcher_;
+            just::dispatch::DispatcherBase * dispatcher_;
             framework::string::Url url_;
             //util::stream::UrlSource * url_source_;
             util::stream::UrlSink * url_sink_;
@@ -69,6 +69,6 @@ namespace ppbox
         };
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_DOWNLOAD_DISPATCH_DOWNLOADHER_H_
+#endif // _JUST_DOWNLOAD_DISPATCH_DOWNLOADHER_H_

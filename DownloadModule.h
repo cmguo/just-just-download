@@ -1,14 +1,14 @@
 // DownloadModule.h
 
-#ifndef _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
-#define _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
+#ifndef _JUST_DOWNLOAD_DOWNLOAD_MODULE_H_
+#define _JUST_DOWNLOAD_DOWNLOAD_MODULE_H_
 
 #include <framework/string/Url.h>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
 
-namespace ppbox
+namespace just
 {
     namespace download
     {
@@ -16,7 +16,7 @@ namespace ppbox
         class Downloader;
 
         class DownloadModule
-            : public ppbox::common::CommonModuleBase<DownloadModule>
+            : public just::common::CommonModuleBase<DownloadModule>
         {
         public:
             typedef boost::function<void (
@@ -86,6 +86,6 @@ namespace ppbox
         };
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
-#endif // _PPBOX_DOWNLOAD_DOWNLOAD_MODULE_H_
+#endif // _JUST_DOWNLOAD_DOWNLOAD_MODULE_H_

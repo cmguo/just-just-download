@@ -1,14 +1,14 @@
 //Downloader.h
 
-#ifndef _PPBOX_DOWNLOAD_DOWNLOADER_H_
-#define _PPBOX_DOWNLOAD_DOWNLOADER_H_
+#ifndef _JUST_DOWNLOAD_DOWNLOADER_H_
+#define _JUST_DOWNLOAD_DOWNLOADER_H_
 
-#include "ppbox/download/DownloadBase.h"
-#include "ppbox/download/DownloadStatistic.h"
+#include "just/download/DownloadBase.h"
+#include "just/download/DownloadStatistic.h"
 
 #include <framework/timer/TickCounter.h>
 
-namespace ppbox {
+namespace just {
 
     namespace download
     {
@@ -60,6 +60,6 @@ namespace ppbox {
         };
 
     } // namespace download
-} // namespace ppbox
+} // namespace just
 
 #endif
