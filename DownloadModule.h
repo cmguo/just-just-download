@@ -42,10 +42,18 @@ namespace just
                 framework::string::Url const & url, 
                 open_response_type const & resp);
 
+            bool start(
+                Downloader * downloader, long start, long end,
+                open_response_type const & resp);
+            
             bool close(
                 Downloader * downloader, 
                 boost::system::error_code & ec);
 
+            bool cancel(
+                Downloader * downloader, 
+                boost::system::error_code & ec);
+                
             Downloader * find(
                 framework::string::Url const & url);
 
@@ -62,9 +70,18 @@ namespace just
                 boost::mutex::scoped_lock & lock, 
                 DemuxInfo * info);
 
+            void async_start(
+                Downloader * downloader, long start, long end,
+                open_response_type const & resp);
+
             void handle_open(
                 boost::system::error_code const & ec,
                 DemuxInfo * info);
+            
+            void handle_start(
+                boost::system::error_code const & ecc,
+                Downloader * downloader,
+                open_response_type const & resp);
 
             boost::system::error_code close_locked(
                 DemuxInfo * info, 

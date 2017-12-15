@@ -73,6 +73,27 @@ namespace just
             }
         }
 
+
+        void DispatchDownloader::start(
+            long start, long end,
+            response_type const & resp)
+        {
+            boost::system::error_code ec;
+            set_start_response(resp);
+            just::dispatch::SeekRange range;
+            range.type = just::dispatch::SeekRange::byte;
+            range.beg = url_sink_->total(ec);
+            if (range.beg == 0) {
+                range.type = just::dispatch::SeekRange::none;
+            }
+            calc_speed(range.beg);
+            dispatcher_->async_play(
+                range, 
+                just::dispatch::response_t(), 
+                boost::bind(&DispatchDownloader::handle_play, this, _1));
+        }
+
+
         bool DispatchDownloader::cancel(
             boost::system::error_code & ec)
         {
@@ -144,6 +165,11 @@ namespace just
             if (!ec) {
                 dispatcher_->setup(-1, *url_sink_, ec);
             }
+#if 1
+            opened_ = true;
+            response(ec);
+            return;
+#else
 
             if (ec) {
                 response(ec);
@@ -151,7 +177,6 @@ namespace just
             }
 
             opened_ = true;
-
             just::dispatch::SeekRange range;
             range.type = just::dispatch::SeekRange::byte;
             range.beg = url_sink_->total(ec);
@@ -163,13 +188,14 @@ namespace just
                 range, 
                 just::dispatch::response_t(), 
                 boost::bind(&DispatchDownloader::handle_play, this, _1));
+#endif            
         }
 
         void DispatchDownloader::handle_play(
             boost::system::error_code const & ec)
         {
             LOG_INFO("[handle_play] ec:" << ec.message());
-            response(ec);
+            start_response(ec);
         }
 
     } // namespace download

@@ -26,6 +26,10 @@ namespace just {
                 framework::string::Url const & url,
                 response_type const & resp) = 0;
 
+            virtual void start(
+                long start, long end,
+                response_type const & resp) = 0;
+
             virtual bool cancel(
                 boost::system::error_code & ec) = 0;
 
@@ -46,7 +50,13 @@ namespace just {
             void set_response(
                 response_type const & resp);
 
+            void set_start_response(
+                response_type const & resp);
+            
             void response(
+                boost::system::error_code const & ec);
+
+            void start_response(
                 boost::system::error_code const & ec);
 
             boost::uint32_t calc_speed(
@@ -55,6 +65,7 @@ namespace just {
         private:
             boost::asio::io_service & io_svc_;
             response_type resp_;
+            response_type start_resp_;
             boost::uint64_t last_size_;
             framework::timer::TickCounter tick_count_;
         };

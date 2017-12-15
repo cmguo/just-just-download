@@ -27,11 +27,25 @@ namespace just
             resp_ = resp;
         }
 
+        void Downloader::set_start_response(
+            response_type const & resp)
+        {
+            start_resp_ = resp;
+        }
+        
         void Downloader::response(
             boost::system::error_code const & ec)
         {
             response_type resp;
             resp.swap(resp_);
+            io_svc_.post(boost::bind(resp, ec));
+        }
+
+        void Downloader::start_response(
+            boost::system::error_code const & ec)
+        {
+            response_type resp;
+            resp.swap(start_resp_);
             io_svc_.post(boost::bind(resp, ec));
         }
 

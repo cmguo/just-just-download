@@ -44,6 +44,10 @@ namespace just
                 DownloadStatistic & stat,
                 boost::system::error_code & ec);
 
+            virtual void start(
+                long start, long end,
+                response_type const & resp);
+
         private:
             //void handle_source_open(
             //    boost::system::error_code const & ec);
@@ -59,7 +63,7 @@ namespace just
 
             void handle_play(
                 boost::system::error_code const & ec);
-
+            
         private:
             just::dispatch::DispatcherBase * dispatcher_;
             framework::string::Url url_;

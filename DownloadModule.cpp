@@ -11,7 +11,7 @@
 #include <boost/bind.hpp>
 using namespace boost::system;
 
-FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.download.DemuxerModule", framework::logger::Debug);
+FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.download.DownloadModule", framework::logger::Debug);
 
 namespace just
 {
@@ -106,6 +106,31 @@ namespace just
             return info->downloader;
         }
 
+        bool DownloadModule::start(
+            Downloader * downloader, long start, long end,
+            open_response_type const & resp)
+        {
+            error_code ec;
+            boost::mutex::scoped_lock lock(mutex_);
+            
+            std::vector<DemuxInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            if (iter == demuxers_.end()) {
+                ec = framework::system::logic_error::item_not_exist;
+            } else {
+                if((*iter)->status != DemuxInfo::opened){
+                    ec = framework::system::logic_error::not_supported;
+                }
+            }
+            
+            if (ec) {
+                io_svc().post(boost::bind(resp, ec, downloader));
+                return false;
+            }
+            async_start(downloader, start, end, resp);
+            return true;
+        }
+
         bool DownloadModule::close(
             Downloader * downloader, 
             error_code & ec)
@@ -118,6 +143,24 @@ namespace just
                 ec = framework::system::logic_error::item_not_exist;
             } else {
                 close_locked(*iter, false, ec);
+            }
+            return !ec;
+        }
+
+        bool DownloadModule::cancel(
+            Downloader * downloader, 
+            error_code & ec)
+        {
+            LOG_INFO("fun " << __func__ << " line " << __LINE__ << " pid "<< getpid()<< " tid "<< gettid());
+            boost::mutex::scoped_lock lock(mutex_);
+            std::vector<DemuxInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            //assert(iter != demuxers_.end());
+            if (iter == demuxers_.end()) {
+                ec = framework::system::logic_error::item_not_exist;
+            } else {
+                if (downloader)
+                    downloader->cancel(ec);
             }
             return !ec;
         }
@@ -147,6 +190,14 @@ namespace just
             info->status = DemuxInfo::opening;
         }
 
+        void DownloadModule::async_start(
+            Downloader * downloader, long start, long end,
+            open_response_type const & resp)
+        {
+            downloader->start(start, end, 
+                boost::bind(&DownloadModule::handle_start, this, _1, downloader, resp));
+        }
+        
         void DownloadModule::handle_open(
             error_code const & ecc,
             DemuxInfo * info)
@@ -171,6 +222,15 @@ namespace just
             lock.unlock();
 
             resp(ec, downloader);
+        }
+
+        void DownloadModule::handle_start(
+            error_code const & ecc,
+            Downloader * downloader,
+            open_response_type const & resp)
+        {
+            error_code ec = ecc;
+            resp(ec,downloader);
         }
 
         error_code DownloadModule::close_locked(
