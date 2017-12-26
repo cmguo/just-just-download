@@ -25,7 +25,9 @@ namespace just
                 closed, 
                 opening, 
                 canceled, 
-                opened, 
+                opened,
+                starting,
+                finished,
             };
 
             StatusEnum status;
@@ -120,6 +122,8 @@ namespace just
             } else {
                 if((*iter)->status != DemuxInfo::opened){
                     ec = framework::system::logic_error::not_supported;
+                } else {
+                    (*iter)->status = DemuxInfo::starting;
                 }
             }
             
@@ -151,7 +155,6 @@ namespace just
             Downloader * downloader, 
             error_code & ec)
         {
-            LOG_INFO("fun " << __func__ << " line " << __LINE__ << " pid "<< getpid()<< " tid "<< gettid());
             boost::mutex::scoped_lock lock(mutex_);
             std::vector<DemuxInfo *>::const_iterator iter = 
                 std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
@@ -230,6 +233,23 @@ namespace just
             open_response_type const & resp)
         {
             error_code ec = ecc;
+            mutex_.lock();
+            std::vector<DemuxInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            //assert(iter != demuxers_.end());
+            if (iter == demuxers_.end()) {
+                ec = framework::system::logic_error::item_not_exist;
+            } else {
+                if((*iter)->status == DemuxInfo::canceled){
+                    (*iter)->status = DemuxInfo::finished;
+                    close_locked(*iter, true, ec);
+                    ec = boost::asio::error::operation_aborted;
+                } else {
+                    (*iter)->status = DemuxInfo::finished;
+                }
+            }
+            mutex_.unlock();
+            
             resp(ec,downloader);
         }
 
@@ -253,7 +273,13 @@ namespace just
                 }
             } else if (info->status == DemuxInfo::opened) {
                 info->status = DemuxInfo::closed;
+            } else if (info->status == DemuxInfo::finished) {
+                info->status = DemuxInfo::closed;
+            } else if (info->status == DemuxInfo::starting) {
+                info->status = DemuxInfo::canceled;
+                cancel(info, ec);
             }
+            
             if (info->status == DemuxInfo::closed) {
                 close(info, ec);
                 destory(info);
