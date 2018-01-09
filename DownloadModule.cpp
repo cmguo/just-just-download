@@ -17,29 +17,22 @@ namespace just
 {
     namespace download
     {
-
-        struct DownloadModule::DemuxInfo
+        struct DownloadModule::DownloadInfo
         {
-            enum StatusEnum
-            {
-                closed, 
-                opening, 
-                canceled, 
-                opened,
-                starting,
-                finished,
-            };
-
-            StatusEnum status;
+            bool detached;
+            bool opened;
+            bool busy;
             Downloader * downloader;
             framework::string::Url url;
             DownloadModule::open_response_type resp;
             error_code ec;
 
-            DemuxInfo(
+            DownloadInfo(
                 Downloader * downloader)
-                : status(closed)
-                , downloader(downloader)
+                : downloader(downloader)
+                , detached(false)
+                , opened(false)
+                , busy(false)
             {
             }
 
@@ -52,7 +45,7 @@ namespace just
                 }
 
                 bool operator()(
-                    DemuxInfo const * info)
+                    DownloadInfo const * info)
                 {
                     return info->downloader == downloader_;
                 }
@@ -82,7 +75,7 @@ namespace just
             error_code & ec)
         {
             boost::mutex::scoped_lock lock(mutex_);
-            std::vector<DemuxInfo *>::iterator iter = demuxers_.begin();
+            std::vector<DownloadInfo *>::iterator iter = demuxers_.begin();
             for (size_t i = demuxers_.size() - 1; i != (size_t)-1; --i) {
                 close_locked(demuxers_[i], false, ec);
             }
@@ -97,7 +90,7 @@ namespace just
             open_response_type const & resp)
         {
             error_code ec;
-            DemuxInfo * info = create(url, resp, ec);
+            DownloadInfo * info = create(url, resp, ec);
             boost::mutex::scoped_lock lock(mutex_);
             demuxers_.push_back(info);
             if (ec) {
@@ -108,31 +101,64 @@ namespace just
             return info->downloader;
         }
 
-        bool DownloadModule::start(
+        void DownloadModule::open(
+            Downloader * downloader,
+            framework::string::Url const & url, 
+            open_response_type const & resp)
+        {
+            error_code ec;
+            boost::mutex::scoped_lock lock(mutex_);
+            DownloadInfo * info = NULL;
+            std::vector<DownloadInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DownloadInfo::Finder(downloader));
+            if (iter == demuxers_.end()) {
+                ec = framework::system::logic_error::item_not_exist;
+            } else {
+                info = (*iter);
+                if((!info->opened) && (!info->detached) && (!info->busy)) {
+                    info->url = url;
+                    info->resp = resp;
+                } else {
+                    ec = boost::asio::error::operation_aborted;
+                }
+            }
+
+            if (ec) {
+                io_svc().post(boost::bind(resp, ec, downloader));
+                return;
+            }
+            async_open(lock, info);
+            return;
+        }
+
+        void DownloadModule::start(
             Downloader * downloader, long start, long end,
             open_response_type const & resp)
         {
             error_code ec;
             boost::mutex::scoped_lock lock(mutex_);
-            
-            std::vector<DemuxInfo *>::const_iterator iter = 
-                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            DownloadInfo * info = NULL;
+            std::vector<DownloadInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DownloadInfo::Finder(downloader));
             if (iter == demuxers_.end()) {
                 ec = framework::system::logic_error::item_not_exist;
             } else {
-                if((*iter)->status != DemuxInfo::opened){
-                    ec = framework::system::logic_error::not_supported;
+                info = (*iter);
+                if((info->opened) && (!info->detached) && (!info->busy))
+                {
+                    info->busy = true;
+                    info->resp = resp;
                 } else {
-                    (*iter)->status = DemuxInfo::starting;
+                    ec = framework::system::logic_error::not_supported;
                 }
             }
             
             if (ec) {
                 io_svc().post(boost::bind(resp, ec, downloader));
-                return false;
+                return;
             }
-            async_start(downloader, start, end, resp);
-            return true;
+            async_start(downloader, start, end);
+            return;
         }
 
         bool DownloadModule::close(
@@ -140,13 +166,18 @@ namespace just
             error_code & ec)
         {
             boost::mutex::scoped_lock lock(mutex_);
-            std::vector<DemuxInfo *>::const_iterator iter = 
-                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            std::vector<DownloadInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DownloadInfo::Finder(downloader));
             //assert(iter != demuxers_.end());
             if (iter == demuxers_.end()) {
                 ec = framework::system::logic_error::item_not_exist;
             } else {
-                close_locked(*iter, false, ec);
+                if(!(*iter)->detached) {
+                    (*iter)->detached = true;
+                    close_locked(*iter, false, ec);
+                } else {
+                    ec = framework::system::logic_error::not_supported;
+                }
             }
             return !ec;
         }
@@ -156,33 +187,46 @@ namespace just
             error_code & ec)
         {
             boost::mutex::scoped_lock lock(mutex_);
-            std::vector<DemuxInfo *>::const_iterator iter = 
-                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
+            std::vector<DownloadInfo *>::const_iterator iter = 
+                std::find_if(demuxers_.begin(), demuxers_.end(), DownloadInfo::Finder(downloader));
             //assert(iter != demuxers_.end());
             if (iter == demuxers_.end()) {
                 ec = framework::system::logic_error::item_not_exist;
             } else {
-                if (downloader)
+                if ((*iter)->busy) {
                     downloader->cancel(ec);
+                } else {
+                    ec = framework::system::logic_error::not_supported;
+                }
             }
             return !ec;
         }
 
-        DownloadModule::DemuxInfo * DownloadModule::create(
+        DownloadModule::DownloadInfo * DownloadModule::create(
             framework::string::Url const & url, 
             open_response_type const & resp, 
             error_code & ec)
         {
             Downloader * downloader = new DispatchDownloader(io_svc());
-            DemuxInfo * info = new DemuxInfo(downloader);
+            DownloadInfo * info = new DownloadInfo(downloader);
             info->url = url;
             info->resp = resp;
             return info;
         }
 
+        Downloader * DownloadModule::create()
+        {
+            Downloader * downloader = new DispatchDownloader(io_svc());
+            DownloadInfo * info = new DownloadInfo(downloader);
+            boost::mutex::scoped_lock lock(mutex_);
+            demuxers_.push_back(info);
+            return downloader;
+        }
+
+
         void DownloadModule::async_open(
             boost::mutex::scoped_lock & lock, 
-            DemuxInfo * info)
+            DownloadInfo * info)
         {
             Downloader * downloader = info->downloader;
             lock.unlock();
@@ -190,20 +234,20 @@ namespace just
                 info->url, 
                 boost::bind(&DownloadModule::handle_open, this, _1, info));
             lock.lock();
-            info->status = DemuxInfo::opening;
+            
+            info->busy = true;
         }
 
         void DownloadModule::async_start(
-            Downloader * downloader, long start, long end,
-            open_response_type const & resp)
+            Downloader * downloader, long start, long end)
         {
             downloader->start(start, end, 
-                boost::bind(&DownloadModule::handle_start, this, _1, downloader, resp));
+                boost::bind(&DownloadModule::handle_start, this, _1, downloader));
         }
         
         void DownloadModule::handle_open(
             error_code const & ecc,
-            DemuxInfo * info)
+            DownloadInfo * info)
         {
             boost::mutex::scoped_lock lock(mutex_);
 
@@ -215,13 +259,15 @@ namespace just
             resp.swap(info->resp);
             //要放在close_locked之前对info->ec赋值
             info->ec = ec;
-            if (info->status == DemuxInfo::canceled) {
-                close_locked(info, true, ec);
-                ec = boost::asio::error::operation_aborted;
-            } else {
-                info->status = DemuxInfo::opened;
-            }
 
+            info->busy = false;
+            if(!ec)
+                info->opened = true;
+            
+            if(info->detached)
+            {
+                close_locked(info, true, ec);
+            }
             lock.unlock();
 
             resp(ec, downloader);
@@ -229,66 +275,51 @@ namespace just
 
         void DownloadModule::handle_start(
             error_code const & ecc,
-            Downloader * downloader,
-            open_response_type const & resp)
+            Downloader * downloader)
         {
             error_code ec = ecc;
-            mutex_.lock();
-            std::vector<DemuxInfo *>::const_iterator iter = 
-                std::find_if(demuxers_.begin(), demuxers_.end(), DemuxInfo::Finder(downloader));
-            //assert(iter != demuxers_.end());
-            if (iter == demuxers_.end()) {
-                ec = framework::system::logic_error::item_not_exist;
-            } else {
-                if((*iter)->status == DemuxInfo::canceled){
-                    (*iter)->status = DemuxInfo::finished;
-                    close_locked(*iter, true, ec);
-                    ec = boost::asio::error::operation_aborted;
+            open_response_type resp;
+            {
+                boost::mutex::scoped_lock lock(mutex_);
+                std::vector<DownloadInfo *>::const_iterator iter = 
+                    std::find_if(demuxers_.begin(), demuxers_.end(), DownloadInfo::Finder(downloader));
+                //assert(iter != demuxers_.end());
+                if (iter == demuxers_.end()) {
+                    ec = framework::system::logic_error::item_not_exist;
+                    return;
                 } else {
-                    (*iter)->status = DemuxInfo::finished;
+    
+                    (*iter)->busy = false;
+                    
+                    resp.swap((*iter)->resp);
+                    
+                    if((*iter)->detached)
+                    {
+                        close_locked((*iter), true, ec);
+                    }
+    
                 }
             }
-            mutex_.unlock();
-            
             resp(ec,downloader);
         }
 
         error_code DownloadModule::close_locked(
-            DemuxInfo * info, 
+            DownloadInfo * info, 
             bool inner_call, 
             error_code & ec)
         {
-            assert(!inner_call || info->status == DemuxInfo::opening || info->status == DemuxInfo::canceled);
-            if (info->status == DemuxInfo::closed) {
-                ec = error::not_open;
-            } else if (info->status == DemuxInfo::opening) {
-                info->status = DemuxInfo::canceled;
-                cancel(info, ec);
-            } else if (info->status == DemuxInfo::canceled) {
-                if (inner_call) {
-                    info->status = DemuxInfo::closed;
-                    ec.clear();
-                } else {
-                    ec = error::not_open;
-                }
-            } else if (info->status == DemuxInfo::opened) {
-                info->status = DemuxInfo::closed;
-            } else if (info->status == DemuxInfo::finished) {
-                info->status = DemuxInfo::closed;
-            } else if (info->status == DemuxInfo::starting) {
-                info->status = DemuxInfo::canceled;
-                cancel(info, ec);
-            }
-            
-            if (info->status == DemuxInfo::closed) {
+            LOG_INFO("fun " << __func__ << " line " << __LINE__ << " opened "<<info->opened<< " detached "<<info->detached<< " busy "<<info->busy);
+            if((info->detached) && (!info->busy)) {
                 close(info, ec);
                 destory(info);
+            } else if (info->busy) {
+                cancel(info, ec);
             }
             return ec;
         }
 
         error_code DownloadModule::cancel(
-            DemuxInfo * info, 
+            DownloadInfo * info, 
             error_code & ec)
         {
             Downloader * downloader = info->downloader;
@@ -298,7 +329,7 @@ namespace just
         }
 
         error_code DownloadModule::close(
-            DemuxInfo * info, 
+            DownloadInfo * info, 
             error_code & ec)
         {
             Downloader * downloader = info->downloader;
@@ -308,7 +339,7 @@ namespace just
         }
 
         void DownloadModule::destory(
-            DemuxInfo * info)
+            DownloadInfo * info)
         {
             Downloader * downloader = info->downloader;
             if (downloader)
@@ -319,12 +350,12 @@ namespace just
             delete info;
             info = NULL;
         }
-
+        
         Downloader * DownloadModule::find(
             framework::string::Url const & url)
         {
             boost::mutex::scoped_lock lock(mutex_);
-            std::vector<DemuxInfo *>::const_iterator iter = demuxers_.begin();
+            std::vector<DownloadInfo *>::const_iterator iter = demuxers_.begin();
             for (size_t i = demuxers_.size() - 1; i != (size_t)-1; --i) {
                 if ((*iter)->url == url) {
                     return (*iter)->downloader;

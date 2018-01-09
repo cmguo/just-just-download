@@ -38,11 +38,18 @@ namespace just
                 boost::system::error_code & ec);
 
         public:
+            Downloader * create();
+
             Downloader * open(
                 framework::string::Url const & url, 
                 open_response_type const & resp);
 
-            bool start(
+            void open(
+                Downloader * downloader,
+                framework::string::Url const & url, 
+                open_response_type const & resp);
+
+            void start(
                 Downloader * downloader, long start, long end,
                 open_response_type const & resp);
             
@@ -58,49 +65,47 @@ namespace just
                 framework::string::Url const & url);
 
         private:
-            struct DemuxInfo;
+            struct DownloadInfo;
 
         private:
-            DemuxInfo * create(
+            DownloadInfo * create(
                 framework::string::Url const & url, 
                 open_response_type const & resp, 
                 boost::system::error_code & ec);
 
             void async_open(
                 boost::mutex::scoped_lock & lock, 
-                DemuxInfo * info);
+                DownloadInfo * info);
 
             void async_start(
-                Downloader * downloader, long start, long end,
-                open_response_type const & resp);
+                Downloader * downloader, long start, long end);
 
             void handle_open(
                 boost::system::error_code const & ec,
-                DemuxInfo * info);
+                DownloadInfo * info);
             
             void handle_start(
                 boost::system::error_code const & ecc,
-                Downloader * downloader,
-                open_response_type const & resp);
+                Downloader * downloader);
 
             boost::system::error_code close_locked(
-                DemuxInfo * info, 
+                DownloadInfo * info, 
                 bool inner_call, 
                 boost::system::error_code & ec);
 
             boost::system::error_code close(
-                DemuxInfo * info, 
+                DownloadInfo * info, 
                 boost::system::error_code & ec);
 
             boost::system::error_code cancel(
-                DemuxInfo * info, 
+                DownloadInfo * info, 
                 boost::system::error_code & ec);
 
             void destory(
-                DemuxInfo * info);
+                DownloadInfo * info);
 
         private:
-            std::vector<DemuxInfo *> demuxers_;
+            std::vector<DownloadInfo *> demuxers_;
             boost::mutex mutex_;
         };
 
