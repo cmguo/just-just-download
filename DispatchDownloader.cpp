@@ -97,7 +97,8 @@ namespace just
         bool DispatchDownloader::cancel(
             boost::system::error_code & ec)
         {
-            return dispatcher_->cancel(ec);
+            io_svc().post(boost::bind(&just::dispatch::DispatcherBase::cancel,dispatcher_, ec));
+            return true;
         }
 
         bool DispatchDownloader::close(

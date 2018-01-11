@@ -74,7 +74,6 @@ namespace just
                 boost::system::error_code & ec);
 
             void async_open(
-                boost::mutex::scoped_lock & lock, 
                 DownloadInfo * info);
 
             void async_start(

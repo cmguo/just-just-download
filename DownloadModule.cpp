@@ -100,7 +100,8 @@ namespace just
             if (ec) {
                 io_svc().post(boost::bind(resp, ec, info->downloader));
             } else {
-                async_open(lock, info);
+                lock.unlock();
+                async_open(info);
             }
             return info->downloader;
         }
@@ -130,8 +131,11 @@ namespace just
             if (ec) {
                 io_svc().post(boost::bind(resp, ec, downloader));
                 return;
+            } else {
+                info->busy = true;
             }
-            async_open(lock, info);
+            lock.unlock();
+            async_open(info);
             return;
         }
 
@@ -231,17 +235,12 @@ namespace just
 
 
         void DownloadModule::async_open(
-            boost::mutex::scoped_lock & lock, 
             DownloadInfo * info)
         {
             Downloader * downloader = info->downloader;
-            lock.unlock();
             downloader->open(
                 info->url, 
                 boost::bind(&DownloadModule::handle_open, this, _1, info));
-            lock.lock();
-            
-            info->busy = true;
         }
 
         void DownloadModule::async_start(
@@ -267,6 +266,7 @@ namespace just
             info->ec = ec;
 
             info->busy = false;
+
             if(!ec)
                 info->opened = true;
             
