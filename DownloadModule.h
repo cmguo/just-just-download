@@ -103,6 +103,10 @@ namespace just
 
             void destory(
                 DownloadInfo * info);
+            
+            void dump_info(DownloadInfo * info,
+                        char const * func, 
+                        int line);
 
         private:
             std::vector<DownloadInfo *> demuxers_;

@@ -11,6 +11,10 @@
 #include <boost/bind.hpp>
 using namespace boost::system;
 
+
+#define dumpinfo(x) dump_info(x, __func__, __LINE__)
+
+
 FRAMEWORK_LOGGER_DECLARE_MODULE_LEVEL("just.download.DownloadModule", framework::logger::Debug);
 
 namespace just
@@ -54,7 +58,7 @@ namespace just
                 Downloader * downloader_;
             };
         };
-
+        
         DownloadModule::DownloadModule(
             util::daemon::Daemon & daemon)
             : just::common::CommonModuleBase<DownloadModule>(daemon, "DemuxerModule")
@@ -118,11 +122,11 @@ namespace just
                 if((!info->opened) && (!info->detached) && (!info->busy)) {
                     info->url = url;
                     info->resp = resp;
+                    dumpinfo(info);
                 } else {
                     ec = boost::asio::error::operation_aborted;
                 }
             }
-
             if (ec) {
                 io_svc().post(boost::bind(resp, ec, downloader));
                 return;
@@ -151,8 +155,8 @@ namespace just
                 } else {
                     ec = framework::system::logic_error::not_supported;
                 }
+                dumpinfo(info);
             }
-            
             if (ec) {
                 io_svc().post(boost::bind(resp, ec, downloader));
                 return;
@@ -172,6 +176,7 @@ namespace just
             if (iter == demuxers_.end()) {
                 ec = framework::system::logic_error::item_not_exist;
             } else {
+                dumpinfo(*iter);
                 if(!(*iter)->detached) {
                     (*iter)->detached = true;
                     close_locked(*iter, false, ec);
@@ -193,6 +198,7 @@ namespace just
             if (iter == demuxers_.end()) {
                 ec = framework::system::logic_error::item_not_exist;
             } else {
+                dumpinfo(*iter);
                 if ((*iter)->busy) {
                     downloader->cancel(ec);
                 } else {
@@ -264,6 +270,7 @@ namespace just
             if(!ec)
                 info->opened = true;
             
+            dumpinfo(info);
             if(info->detached)
             {
                 close_locked(info, true, ec);
@@ -288,11 +295,9 @@ namespace just
                     ec = framework::system::logic_error::item_not_exist;
                     return;
                 } else {
-    
                     (*iter)->busy = false;
-                    
                     resp.swap((*iter)->resp);
-                    
+                    dumpinfo(*iter);
                     if((*iter)->detached)
                     {
                         close_locked((*iter), true, ec);
@@ -308,7 +313,7 @@ namespace just
             bool inner_call, 
             error_code & ec)
         {
-            LOG_INFO("fun " << __func__ << " line " << __LINE__ << " opened "<<info->opened<< " detached "<<info->detached<< " busy "<<info->busy);
+            dumpinfo(info);
             if((info->detached) && (!info->busy)) {
                 close(info, ec);
                 destory(info);
@@ -350,7 +355,14 @@ namespace just
             delete info;
             info = NULL;
         }
-        
+
+        void DownloadModule::dump_info(DownloadInfo * info,
+            char const * func, 
+            int line)
+        {
+            LOG_INFO("fun " << func << " line " << line << " opened "<<info->opened<< " detached "<<info->detached<< " busy  "<<info->busy);
+        }
+
         Downloader * DownloadModule::find(
             framework::string::Url const & url)
         {
