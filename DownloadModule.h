@@ -104,6 +104,7 @@ namespace just
                 DownloadInfo * info);
             
             void dump_info(DownloadInfo * info,
+                        boost::system::error_code & ec,
                         char const * func, 
                         int line);
 
