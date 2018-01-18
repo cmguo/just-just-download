@@ -70,6 +70,7 @@ namespace just
             //util::stream::UrlSource * url_source_;
             util::stream::UrlSink * url_sink_;
             bool opened_;
+            boost::mutex mutex_;
         };
 
     } // namespace download

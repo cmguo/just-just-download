@@ -87,6 +87,7 @@ namespace just
                 range.type = just::dispatch::SeekRange::none;
             }
             calc_speed(range.beg);
+            boost::mutex::scoped_lock lock(mutex_);
             dispatcher_->async_play(
                 range, 
                 just::dispatch::response_t(), 
@@ -122,8 +123,11 @@ namespace just
                 return true;
             }
             just::avbase::StreamStatus info;
-            if (!dispatcher_->get_stream_status(info, ec))
-                return false;
+            {
+                boost::mutex::scoped_lock lock(mutex_);
+                if (!dispatcher_->get_stream_status(info, ec))
+                    return false;
+            }
             stat.total_size = info.byte_range.end;
             stat.finish_size = info.byte_range.pos;
             stat.speed = calc_speed(info.byte_range.pos);
@@ -146,6 +150,7 @@ namespace just
                 return;
             }
 
+            boost::mutex::scoped_lock lock(mutex_);
             dispatcher_->async_open(
                 url_, 
                 boost::bind(&DispatchDownloader::handle_dispatcher_open, this ,_1));
@@ -164,6 +169,7 @@ namespace just
             }
 
             if (!ec) {
+                boost::mutex::scoped_lock lock(mutex_);
                 dispatcher_->setup(-1, *url_sink_, ec);
             }
 #if 1
